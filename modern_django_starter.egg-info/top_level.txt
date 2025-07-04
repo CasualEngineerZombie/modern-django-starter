@@ -1,1 +1,0 @@
-modern_django_starter

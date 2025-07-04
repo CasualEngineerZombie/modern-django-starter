@@ -365,7 +365,7 @@ urlpatterns = [
             github_dir = self.project_dir / ".github" / "workflows"
             github_dir.mkdir(parents=True, exist_ok=True)
             
-            ci_template = self.env.get_template("github-actions.yml.j2")
+            ci_template = self.env.get_template(".github/workflows/ci.yml.j2")
             content = ci_template.render(
                 project_name=self.project_name,
                 config=self.config
