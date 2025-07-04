@@ -1,0 +1,75 @@
+version: '3.8'
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+    volumes:
+      - .:/app
+      - media_volume:/app/media
+    environment:
+      - DEBUG=1
+      - DJANGO_SETTINGS_MODULE={{ project_name }}.settings.development
+    depends_on:
+      {% if config.use_postgresql %}
+      - db
+      {% endif %}
+      {% if config.use_celery %}
+      - redis
+      {% endif %}
+    command: python manage.py runserver 0.0.0.0:8000
+
+  {% if config.use_postgresql %}
+  db:
+    image: postgres:{{ config.postgresql_version }}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data/
+    environment:
+      - POSTGRES_DB={{ project_name }}
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    ports:
+      - "5432:5432"
+  {% endif %}
+
+  {% if config.use_celery %}
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
+  celery:
+    build: .
+    command: celery -A {{ project_name }} worker -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      {% if config.use_postgresql %}
+      - db
+      {% endif %}
+    environment:
+      - DEBUG=1
+      - DJANGO_SETTINGS_MODULE={{ project_name }}.settings.development
+
+  celery-beat:
+    build: .
+    command: celery -A {{ project_name }} beat -l info
+    volumes:
+      - .:/app
+    depends_on:
+      - redis
+      {% if config.use_postgresql %}
+      - db
+      {% endif %}
+    environment:
+      - DEBUG=1
+      - DJANGO_SETTINGS_MODULE={{ project_name }}.settings.development
+  {% endif %}
+
+volumes:
+  {% if config.use_postgresql %}
+  postgres_data:
+  {% endif %}
+  media_volume:

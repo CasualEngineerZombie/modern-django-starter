@@ -1,0 +1,37 @@
+# Base requirements for {{ project_name }}
+Django==5.1
+{% if config.use_postgresql %}
+psycopg2-binary==2.9.9
+{% endif %}
+
+# Core dependencies
+python-decouple==3.8
+Pillow==10.1.0
+
+# Authentication
+django-allauth==0.57.0
+
+# Forms and widgets
+django-widget-tweaks==1.5.0
+
+{% if config.use_drf %}
+# Django REST Framework
+djangorestframework==3.14.0
+django-cors-headers==4.3.1
+{% endif %}
+
+{% if config.use_celery %}
+# Background tasks
+celery==5.3.4
+redis==5.0.1
+django-celery-beat==2.5.0
+django-celery-results==2.5.1
+{% endif %}
+
+{% if config.use_sentry %}
+# Error tracking
+sentry-sdk==1.38.0
+{% endif %}
+
+# Utilities
+python-dotenv==1.0.0

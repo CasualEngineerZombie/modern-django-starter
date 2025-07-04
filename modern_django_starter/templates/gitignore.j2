@@ -1,0 +1,128 @@
+# Django specific
+*.log
+*.pot
+*.pyc
+__pycache__/
+local_settings.py
+db.sqlite3
+db.sqlite3-journal
+media/
+staticfiles/
+
+# Environment variables
+.env
+.env.local
+.env.production
+.env.staging
+
+# Virtual environments
+venv/
+env/
+ENV/
+venv.bak/
+
+# IDE specific files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS specific files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Python specific
+*.pyc
+*.pyo
+*.pyd
+__pycache__/
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# Testing
+.coverage
+.pytest_cache/
+.tox/
+htmlcov/
+
+# Celery
+celerybeat-schedule
+celerybeat.pid
+
+# Frontend dependencies and builds
+{% if config.frontend_pipeline != 'none' %}
+node_modules/
+npm-debug.log
+yarn-debug.log
+yarn-error.log
+{% if config.frontend_pipeline == 'webpack' %}
+webpack-stats.json
+{% elif config.frontend_pipeline == 'vite' %}
+dist/
+.vite/
+{% elif config.frontend_pipeline == 'parcel' %}
+.parcel-cache/
+{% endif %}
+{% endif %}
+
+# Docker
+.dockerignore
+
+# Logs
+logs/
+*.log
+
+# Runtime data
+pids/
+*.pid
+*.seed
+
+# Coverage directory used by tools like istanbul
+coverage/
+
+# Dependency directories
+jspm_packages/
+
+# Optional npm cache directory
+.npm
+
+# Optional REPL history
+.node_repl_history
+
+# Temporary folders
+tmp/
+temp/
+
+{% if config.cloud_provider == 'gcp' %}
+# Google Cloud credentials
+service-account-key.json
+{% endif %}
+
+# Backup files
+*.bak
+*.backup
+
+# Local configuration overrides
+local.py
+local_settings.py

@@ -1,0 +1,271 @@
+# {{ project_name|title }}
+
+A modern Django project generated with [modern-django-starter](https://github.com/CasualEngineerZombie/modern-django-starter).
+
+## Features
+
+- **Django 5.1** - Latest Django framework
+- **HTMX** - Dynamic HTML updates without JavaScript
+- **Alpine.js** - Lightweight JavaScript framework
+- **TailwindCSS + DaisyUI** - Utility-first CSS framework with beautiful components
+- **Django Allauth** - Comprehensive authentication system
+- **HyperScript** - Easy DOM manipulation
+{% if config.use_postgresql %}
+- **PostgreSQL {{ config.postgresql_version }}** - Advanced database system
+{% endif %}
+{% if config.use_docker %}
+- **Docker Support** - Containerized development and deployment
+{% endif %}
+{% if config.use_drf %}
+- **Django REST Framework** - Powerful API development
+{% endif %}
+{% if config.use_celery %}
+- **Celery** - Asynchronous task processing
+{% endif %}
+{% if config.use_sentry %}
+- **Sentry** - Error tracking and performance monitoring
+{% endif %}
+{% if config.frontend_pipeline != 'none' %}
+- **{{ config.frontend_pipeline|title }}** - Modern frontend build pipeline
+{% endif %}
+
+## Quick Start
+
+{% if config.use_docker %}
+### Using Docker (Recommended)
+
+1. **Clone and setup**:
+   ```bash
+   cd {{ project_name }}
+   cp .env.example .env
+   # Edit .env with your configuration
+   ```
+
+2. **Build and run**:
+   ```bash
+   docker-compose up -d
+   ```
+
+3. **Run migrations**:
+   ```bash
+   docker-compose exec web python manage.py migrate
+   ```
+
+4. **Create superuser**:
+   ```bash
+   docker-compose exec web python manage.py createsuperuser
+   ```
+
+5. **Visit your application**:
+   - Main site: http://localhost:8000
+   - Admin panel: http://localhost:8000/admin
+
+### Manual Setup
+{% else %}
+### Setup
+{% endif %}
+
+1. **Create virtual environment**:
+   ```bash
+   cd {{ project_name }}
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+
+2. **Install dependencies**:
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+3. **Environment configuration**:
+   ```bash
+   cp .env.example .env
+   # Edit .env with your database and other settings
+   ```
+
+{% if config.use_postgresql %}
+4. **Database setup**:
+   ```bash
+   # Make sure PostgreSQL is running
+   createdb {{ project_name }}
+   ```
+{% endif %}
+
+{% if config.frontend_pipeline != 'none' %}
+5. **Frontend setup**:
+   ```bash
+   npm install
+   {% if config.frontend_pipeline == 'vite' %}
+   npm run dev  # In a separate terminal
+   {% endif %}
+   ```
+{% endif %}
+
+6. **Run migrations**:
+   ```bash
+   python manage.py migrate
+   ```
+
+7. **Create superuser**:
+   ```bash
+   python manage.py createsuperuser
+   ```
+
+8. **Run development server**:
+   ```bash
+   python manage.py runserver
+   ```
+
+## Development
+
+### Project Structure
+
+```
+{{ project_name }}/
+├── {{ project_name }}/          # Main project package
+│   ├── settings/        # Settings modules
+│   ├── urls.py         # URL configuration
+│   ├── wsgi.py         # WSGI application
+{% if config.use_async %}
+│   └── asgi.py         # ASGI application
+{% endif %}
+├── apps/               # Django applications
+│   ├── core/          # Core application
+│   └── accounts/      # User accounts
+├── templates/         # HTML templates
+├── static/           # Static files (CSS, JS, images)
+├── media/           # User uploaded files
+├── requirements/    # Requirements files
+{% if config.use_docker %}
+├── Dockerfile       # Docker configuration
+├── docker-compose.yml
+{% endif %}
+{% if config.frontend_pipeline != 'none' %}
+├── package.json     # Frontend dependencies
+{% if config.frontend_pipeline == 'vite' %}
+├── vite.config.js   # Vite configuration
+{% endif %}
+{% endif %}
+└── manage.py       # Django management script
+```
+
+### Available Commands
+
+- `python manage.py runserver` - Start development server
+- `python manage.py migrate` - Run database migrations
+- `python manage.py makemigrations` - Create new migrations
+- `python manage.py createsuperuser` - Create admin user
+- `python manage.py collectstatic` - Collect static files
+- `python manage.py test` - Run tests
+
+{% if config.frontend_pipeline != 'none' %}
+### Frontend Development
+
+{% if config.frontend_pipeline == 'vite' %}
+- `npm run dev` - Start Vite development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+{% elif config.frontend_pipeline == 'webpack' %}
+- `npm run dev` - Start webpack development server
+- `npm run build` - Build for production
+{% elif config.frontend_pipeline == 'parcel' %}
+- `npm run dev` - Start Parcel development server
+- `npm run build` - Build for production
+{% endif %}
+{% endif %}
+
+{% if config.use_celery %}
+### Background Tasks
+
+Start Celery worker:
+```bash
+celery -A {{ project_name }} worker -l info
+```
+
+Start Celery beat (for scheduled tasks):
+```bash
+celery -A {{ project_name }} beat -l info
+```
+{% endif %}
+
+### Code Quality
+
+Run code formatting and linting:
+```bash
+black .
+isort .
+flake8
+```
+
+Run tests:
+```bash
+pytest
+```
+
+## Deployment
+
+{% if config.cloud_provider != 'none' %}
+### {{ config.cloud_provider|title }} Deployment
+
+{% if config.cloud_provider == 'heroku' %}
+1. Install Heroku CLI
+2. Create Heroku app: `heroku create {{ project_name }}`
+3. Add PostgreSQL: `heroku addons:create heroku-postgresql:hobby-dev`
+4. Set environment variables: `heroku config:set DEBUG=False`
+5. Deploy: `git push heroku main`
+6. Run migrations: `heroku run python manage.py migrate`
+
+{% elif config.cloud_provider == 'render' %}
+1. Connect your repository to Render
+2. Set up environment variables in Render dashboard
+3. Deploy automatically on git push
+
+{% elif config.cloud_provider == 'railway' %}
+1. Connect your repository to Railway
+2. Set up environment variables in Railway dashboard
+3. Deploy automatically on git push
+
+{% elif config.cloud_provider == 'flyio' %}
+1. Install Fly CLI: `fly install`
+2. Login: `fly auth login`
+3. Launch app: `fly launch`
+4. Deploy: `fly deploy`
+
+{% endif %}
+{% endif %}
+
+### Environment Variables
+
+Copy `.env.example` to `.env` and configure:
+
+- `SECRET_KEY` - Django secret key
+- `DEBUG` - Debug mode (False in production)
+- `ALLOWED_HOSTS` - Comma-separated list of allowed hosts
+{% if config.use_postgresql %}
+- `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` - Database configuration
+{% endif %}
+{% if config.use_sentry %}
+- `SENTRY_DSN` - Sentry error tracking DSN
+{% endif %}
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch: `git checkout -b feature-name`
+3. Make your changes
+4. Run tests: `pytest`
+5. Commit your changes: `git commit -am 'Add feature'`
+6. Push to the branch: `git push origin feature-name`
+7. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License - see the LICENSE file for details.
+
+## Support
+
+- Documentation: [Django Documentation](https://docs.djangoproject.com/)
+- Issues: [Project Issues](https://github.com/CasualEngineerZombie/modern-django-starter/issues)
+- HTMX: [HTMX Documentation](https://htmx.org/docs/)
+- Alpine.js: [Alpine.js Documentation](https://alpinejs.dev/)
+- TailwindCSS: [TailwindCSS Documentation](https://tailwindcss.com/docs)

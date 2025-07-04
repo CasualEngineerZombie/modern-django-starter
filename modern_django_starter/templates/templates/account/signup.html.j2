@@ -1,0 +1,65 @@
+{% raw %}{% extends 'base.html' %}{% endraw %}
+{% raw %}{% load widget_tweaks %}{% endraw %}
+
+{% raw %}{% block title %}Sign Up{% endblock %}{% endraw %}
+
+{% raw %}{% block content %}{% endraw %}
+<div class="hero min-h-screen bg-base-200">
+    <div class="hero-content flex-col lg:flex-row-reverse">
+        <div class="text-center lg:text-left">
+            <h1 class="text-5xl font-bold">Join us today!</h1>
+            <p class="py-6">
+                Create your account and start building amazing things with our modern Django stack.
+            </p>
+        </div>
+        <div class="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
+            <form class="card-body" method="post">
+                {% raw %}{% csrf_token %}{% endraw %}
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Email</span>
+                    </label>
+                    {% raw %}{{ form.email|add_class:"input input-bordered" }}{% endraw %}
+                    {% raw %}{% if form.email.errors %}{% endraw %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{% raw %}{{ form.email.errors.0 }}{% endraw %}</span>
+                        </label>
+                    {% raw %}{% endif %}{% endraw %}
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Password</span>
+                    </label>
+                    {% raw %}{{ form.password1|add_class:"input input-bordered" }}{% endraw %}
+                    {% raw %}{% if form.password1.errors %}{% endraw %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{% raw %}{{ form.password1.errors.0 }}{% endraw %}</span>
+                        </label>
+                    {% raw %}{% endif %}{% endraw %}
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Confirm Password</span>
+                    </label>
+                    {% raw %}{{ form.password2|add_class:"input input-bordered" }}{% endraw %}
+                    {% raw %}{% if form.password2.errors %}{% endraw %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{% raw %}{{ form.password2.errors.0 }}{% endraw %}</span>
+                        </label>
+                    {% raw %}{% endif %}{% endraw %}
+                </div>
+                <div class="form-control mt-6">
+                    <button class="btn btn-primary">Sign Up</button>
+                </div>
+                <div class="divider">OR</div>
+                <div class="text-center">
+                    <p class="text-sm">
+                        Already have an account? 
+                        <a href="{% raw %}{% url 'account_login' %}{% endraw %}" class="link link-primary">Login</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% raw %}{% endblock %}{% endraw %}
