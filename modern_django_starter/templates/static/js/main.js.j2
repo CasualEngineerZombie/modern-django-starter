@@ -1,0 +1,280 @@
+// Custom JavaScript for {{ project_name }}
+
+// Wait for DOM to be ready
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('{{ project_name }} loaded successfully!');
+    
+    // Initialize HTMX event listeners
+    initHTMX();
+    
+    // Initialize Alpine.js components
+    initAlpine();
+    
+    // Initialize custom components
+    initCustomComponents();
+});
+
+// HTMX initialization and event handlers
+function initHTMX() {
+    // Global HTMX configuration
+    htmx.config.globalViewTransitions = true;
+    htmx.config.useTemplateFragments = true;
+    
+    // Add loading indicators
+    document.body.addEventListener('htmx:beforeRequest', function(evt) {
+        // Add loading class to target element
+        const target = evt.detail.target;
+        if (target) {
+            target.classList.add('htmx-request');
+        }
+    });
+    
+    document.body.addEventListener('htmx:afterRequest', function(evt) {
+        // Remove loading class from target element
+        const target = evt.detail.target;
+        if (target) {
+            target.classList.remove('htmx-request');
+        }
+    });
+    
+    // Handle errors
+    document.body.addEventListener('htmx:responseError', function(evt) {
+        console.error('HTMX Error:', evt.detail);
+        showNotification('An error occurred. Please try again.', 'error');
+    });
+    
+    // Custom HTMX endpoint for time demo
+    htmx.defineExtension('time', {
+        onEvent: function(name, evt) {
+            if (name === 'htmx:beforeRequest' && evt.target.getAttribute('hx-get') === '/time/') {
+                // Mock time endpoint since we don't have a backend yet
+                setTimeout(() => {
+                    const timeDisplay = document.getElementById('time-display');
+                    if (timeDisplay) {
+                        timeDisplay.innerHTML = `<span class="text-primary font-mono">${new Date().toLocaleString()}</span>`;
+                    }
+                }, 500);
+                evt.preventDefault();
+            }
+        }
+    });
+}
+
+// Alpine.js initialization
+function initAlpine() {
+    // Global Alpine.js data and methods
+    window.Alpine = window.Alpine || {};
+    
+    // Custom Alpine.js directives can be added here
+    Alpine.directive('tooltip', (el, { expression }) => {
+        el.setAttribute('title', expression);
+    });
+}
+
+// Custom component initialization
+function initCustomComponents() {
+    // Auto-hide alerts after 5 seconds
+    const alerts = document.querySelectorAll('.alert');
+    alerts.forEach(alert => {
+        setTimeout(() => {
+            if (alert.parentNode) {
+                alert.style.opacity = '0';
+                setTimeout(() => {
+                    alert.remove();
+                }, 300);
+            }
+        }, 5000);
+    });
+    
+    // Initialize tooltips
+    initTooltips();
+    
+    // Initialize modal handlers
+    initModals();
+}
+
+// Tooltip initialization
+function initTooltips() {
+    const tooltipElements = document.querySelectorAll('[data-tooltip]');
+    tooltipElements.forEach(element => {
+        element.addEventListener('mouseenter', showTooltip);
+        element.addEventListener('mouseleave', hideTooltip);
+    });
+}
+
+// Modal initialization
+function initModals() {
+    // Close modals when clicking outside
+    document.addEventListener('click', function(e) {
+        if (e.target.classList.contains('modal')) {
+            e.target.checked = false;
+        }
+    });
+    
+    // Close modals with Escape key
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'Escape') {
+            const openModals = document.querySelectorAll('.modal:checked');
+            openModals.forEach(modal => {
+                modal.checked = false;
+            });
+        }
+    });
+}
+
+// Utility functions
+function showNotification(message, type = 'info') {
+    const notification = document.createElement('div');
+    notification.className = `alert alert-${type} fixed top-4 right-4 z-50 max-w-sm`;
+    notification.innerHTML = `
+        <span>${message}</span>
+        <button class="btn btn-sm btn-ghost" onclick="this.parentElement.remove()">×</button>
+    `;
+    
+    document.body.appendChild(notification);
+    
+    // Auto-remove after 5 seconds
+    setTimeout(() => {
+        if (notification.parentNode) {
+            notification.remove();
+        }
+    }, 5000);
+}
+
+function showTooltip(e) {
+    const tooltip = document.createElement('div');
+    const text = e.target.getAttribute('data-tooltip');
+    
+    tooltip.className = 'tooltip tooltip-top tooltip-open absolute z-50';
+    tooltip.textContent = text;
+    
+    document.body.appendChild(tooltip);
+    
+    const rect = e.target.getBoundingClientRect();
+    tooltip.style.left = rect.left + (rect.width / 2) - (tooltip.offsetWidth / 2) + 'px';
+    tooltip.style.top = rect.top - tooltip.offsetHeight - 8 + 'px';
+}
+
+function hideTooltip() {
+    const tooltips = document.querySelectorAll('.tooltip');
+    tooltips.forEach(tooltip => tooltip.remove());
+}
+
+// Utility function for smooth scrolling
+function smoothScrollTo(targetId) {
+    const target = document.getElementById(targetId);
+    if (target) {
+        target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+        });
+    }
+}
+
+// Form validation utilities
+function validateForm(formElement) {
+    const inputs = formElement.querySelectorAll('input[required], textarea[required], select[required]');
+    let isValid = true;
+    
+    inputs.forEach(input => {
+        if (!input.value.trim()) {
+            input.classList.add('input-error');
+            isValid = false;
+        } else {
+            input.classList.remove('input-error');
+        }
+    });
+    
+    return isValid;
+}
+
+// Theme switching utility
+function toggleTheme() {
+    const html = document.documentElement;
+    const currentTheme = html.getAttribute('data-theme');
+    const newTheme = currentTheme === 'dark' ? 'light' : 'dark';
+    
+    html.setAttribute('data-theme', newTheme);
+    localStorage.setItem('theme', newTheme);
+}
+
+// Load saved theme
+function loadTheme() {
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    document.documentElement.setAttribute('data-theme', savedTheme);
+}
+
+// Initialize theme on load
+loadTheme();
+
+{% if config.use_drf %}
+// API utilities for Django REST Framework
+const API = {
+    baseURL: '/api/',
+    
+    async request(endpoint, options = {}) {
+        const url = `${this.baseURL}${endpoint}`;
+        const config = {
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': this.getCSRFToken(),
+                ...options.headers
+            },
+            ...options
+        };
+        
+        try {
+            const response = await fetch(url, config);
+            
+            if (!response.ok) {
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }
+            
+            return await response.json();
+        } catch (error) {
+            console.error('API request failed:', error);
+            throw error;
+        }
+    },
+    
+    getCSRFToken() {
+        return document.querySelector('[name=csrfmiddlewaretoken]')?.value || '';
+    },
+    
+    get(endpoint) {
+        return this.request(endpoint);
+    },
+    
+    post(endpoint, data) {
+        return this.request(endpoint, {
+            method: 'POST',
+            body: JSON.stringify(data)
+        });
+    },
+    
+    put(endpoint, data) {
+        return this.request(endpoint, {
+            method: 'PUT',
+            body: JSON.stringify(data)
+        });
+    },
+    
+    delete(endpoint) {
+        return this.request(endpoint, {
+            method: 'DELETE'
+        });
+    }
+};
+
+// Make API available globally
+window.API = API;
+{% endif %}
+
+// Export functions for use in other scripts
+window.ProjectUtils = {
+    showNotification,
+    smoothScrollTo,
+    validateForm,
+    toggleTheme,
+    loadTheme
+};

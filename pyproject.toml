@@ -1,0 +1,50 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "modern-django-starter"
+version = "0.1.0"
+description = "A CLI tool for generating Django 5.x projects with HTMX, AlpineJS, and more"
+readme = "README.md"
+license = {text = "MIT"}
+authors = [
+    {name = "Rian", email = "rian@example.com"}
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Framework :: Django",
+    "Topic :: Software Development :: Code Generators",
+]
+keywords = ["django", "htmx", "alpine", "tailwind", "starter", "boilerplate"]
+requires-python = ">=3.8"
+dependencies = [
+    "click>=8.0.0",
+    "jinja2>=3.0.0",
+    "cookiecutter>=2.0.0",
+    "pyyaml>=6.0",
+    "rich>=13.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/CasualEngineerZombie/modern-django-starter"
+Repository = "https://github.com/CasualEngineerZombie/modern-django-starter"
+Issues = "https://github.com/CasualEngineerZombie/modern-django-starter/issues"
+
+[project.scripts]
+modern-django-starter = "modern_django_starter.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["modern_django_starter*"]
+
+[tool.setuptools.package-data]
+modern_django_starter = ["templates/**/*", "*.txt", "*.md"]

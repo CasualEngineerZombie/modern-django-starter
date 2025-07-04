@@ -1,0 +1,2 @@
+[console_scripts]
+modern-django-starter = modern_django_starter.cli:main

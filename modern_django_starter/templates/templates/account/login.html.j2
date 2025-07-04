@@ -1,0 +1,63 @@
+{% raw %}{% extends 'base.html' %}{% endraw %}
+{% raw %}{% load widget_tweaks %}{% endraw %}
+
+{% raw %}{% block title %}Login{% endblock %}{% endraw %}
+
+{% raw %}{% block content %}{% endraw %}
+<div class="hero min-h-screen bg-base-200">
+    <div class="hero-content flex-col lg:flex-row-reverse">
+        <div class="text-center lg:text-left">
+            <h1 class="text-5xl font-bold">Login now!</h1>
+            <p class="py-6">
+                Sign in to your account to access all features and personalized content.
+            </p>
+        </div>
+        <div class="card flex-shrink-0 w-full max-w-sm shadow-2xl bg-base-100">
+            <form class="card-body" method="post">
+                {% raw %}{% csrf_token %}{% endraw %}
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Email</span>
+                    </label>
+                    {% raw %}{{ form.login|add_class:"input input-bordered" }}{% endraw %}
+                    {% raw %}{% if form.login.errors %}{% endraw %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{% raw %}{{ form.login.errors.0 }}{% endraw %}</span>
+                        </label>
+                    {% raw %}{% endif %}{% endraw %}
+                </div>
+                <div class="form-control">
+                    <label class="label">
+                        <span class="label-text">Password</span>
+                    </label>
+                    {% raw %}{{ form.password|add_class:"input input-bordered" }}{% endraw %}
+                    {% raw %}{% if form.password.errors %}{% endraw %}
+                        <label class="label">
+                            <span class="label-text-alt text-error">{% raw %}{{ form.password.errors.0 }}{% endraw %}</span>
+                        </label>
+                    {% raw %}{% endif %}{% endraw %}
+                    <label class="label">
+                        <a href="{% raw %}{% url 'account_reset_password' %}{% endraw %}" class="label-text-alt link link-hover">Forgot password?</a>
+                    </label>
+                </div>
+                <div class="form-control">
+                    <label class="label cursor-pointer">
+                        {% raw %}{{ form.remember|add_class:"checkbox" }}{% endraw %}
+                        <span class="label-text">Remember me</span>
+                    </label>
+                </div>
+                <div class="form-control mt-6">
+                    <button class="btn btn-primary">Login</button>
+                </div>
+                <div class="divider">OR</div>
+                <div class="text-center">
+                    <p class="text-sm">
+                        Don't have an account? 
+                        <a href="{% raw %}{% url 'account_signup' %}{% endraw %}" class="link link-primary">Sign up</a>
+                    </p>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% raw %}{% endblock %}{% endraw %}

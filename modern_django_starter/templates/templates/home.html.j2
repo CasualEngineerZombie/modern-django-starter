@@ -1,0 +1,106 @@
+{% raw %}{% extends 'base.html' %}{% endraw %}
+
+{% raw %}{% block title %}Welcome to {{ project_name|title }}{% endblock %}{% endraw %}
+
+{% raw %}{% block content %}{% endraw %}
+<div class="hero min-h-screen bg-base-200" x-data="{ counter: 0 }">
+    <div class="hero-content text-center">
+        <div class="max-w-md">
+            <h1 class="text-5xl font-bold">Hello there! 👋</h1>
+            <p class="py-6">
+                Welcome to your new Django project powered by modern technologies:
+                <strong>HTMX</strong>, <strong>Alpine.js</strong>, <strong>TailwindCSS</strong>, and <strong>DaisyUI</strong>.
+            </p>
+            
+            <!-- Interactive demo with Alpine.js -->
+            <div class="card bg-base-100 shadow-xl mb-6">
+                <div class="card-body">
+                    <h2 class="card-title">Alpine.js Demo</h2>
+                    <p>Counter: <span class="badge badge-primary" x-text="counter"></span></p>
+                    <div class="card-actions justify-center">
+                        <button class="btn btn-primary" @click="counter++">Increment</button>
+                        <button class="btn btn-secondary" @click="counter--">Decrement</button>
+                        <button class="btn btn-accent" @click="counter = 0">Reset</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- HTMX demo -->
+            <div class="card bg-base-100 shadow-xl mb-6">
+                <div class="card-body">
+                    <h2 class="card-title">HTMX Demo</h2>
+                    <div id="htmx-demo">
+                        <p>Current time will appear here when you click the button:</p>
+                        <div id="time-display" class="p-4 bg-base-200 rounded mb-4 min-h-[2rem]"></div>
+                        <button 
+                            class="btn btn-info"
+                            hx-get="/time/"
+                            hx-target="#time-display"
+                            hx-swap="innerHTML"
+                        >
+                            Get Current Time
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Features list -->
+            <div class="card bg-base-100 shadow-xl">
+                <div class="card-body">
+                    <h2 class="card-title">🚀 Features Included</h2>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 text-left">
+                        <div class="flex items-center space-x-2">
+                            <span class="badge badge-success">✓</span>
+                            <span>Django 5.1</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="badge badge-success">✓</span>
+                            <span>HTMX</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="badge badge-success">✓</span>
+                            <span>Alpine.js</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="badge badge-success">✓</span>
+                            <span>TailwindCSS + DaisyUI</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="badge badge-success">✓</span>
+                            <span>Django Allauth</span>
+                        </div>
+                        <div class="flex items-center space-x-2">
+                            <span class="badge badge-success">✓</span>
+                            <span>HyperScript</span>
+                        </div>
+                        {% if config.use_postgresql %}
+                        <div class="flex items-center space-x-2">
+                            <span class="badge badge-success">✓</span>
+                            <span>PostgreSQL</span>
+                        </div>
+                        {% endif %}
+                        {% if config.use_docker %}
+                        <div class="flex items-center space-x-2">
+                            <span class="badge badge-success">✓</span>
+                            <span>Docker Support</span>
+                        </div>
+                        {% endif %}
+                        {% if config.use_drf %}
+                        <div class="flex items-center space-x-2">
+                            <span class="badge badge-success">✓</span>
+                            <span>Django REST Framework</span>
+                        </div>
+                        {% endif %}
+                        {% if config.use_celery %}
+                        <div class="flex items-center space-x-2">
+                            <span class="badge badge-success">✓</span>
+                            <span>Celery</span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% raw %}{% endblock %}{% endraw %}

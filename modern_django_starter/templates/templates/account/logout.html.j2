@@ -1,0 +1,20 @@
+{% raw %}{% extends 'base.html' %}{% endraw %}
+
+{% raw %}{% block title %}Logout{% endblock %}{% endraw %}
+
+{% raw %}{% block content %}{% endraw %}
+<div class="hero min-h-screen bg-base-200">
+    <div class="hero-content text-center">
+        <div class="max-w-md">
+            <h1 class="text-5xl font-bold">See you later! 👋</h1>
+            <p class="py-6">
+                You have been successfully logged out. Thank you for using our service!
+            </p>
+            <div class="space-x-4">
+                <a href="{% raw %}{% url 'home' %}{% endraw %}" class="btn btn-primary">Go Home</a>
+                <a href="{% raw %}{% url 'account_login' %}{% endraw %}" class="btn btn-outline">Login Again</a>
+            </div>
+        </div>
+    </div>
+</div>
+{% raw %}{% endblock %}{% endraw %}
