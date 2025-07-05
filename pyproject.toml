@@ -7,14 +7,13 @@ name = "modern-django-starter"
 version = "0.1.0"
 description = "A CLI tool for generating Django 5.x projects with HTMX, AlpineJS, and more"
 readme = "README.md"
-license = {text = "MIT"}
+license = "MIT"
 authors = [
     {name = "Rian", email = "rian@example.com"}
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
     "Intended Audience :: Developers",
-    "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
     "Programming Language :: Python :: 3.9",
@@ -47,4 +46,4 @@ where = ["."]
 include = ["modern_django_starter*"]
 
 [tool.setuptools.package-data]
-modern_django_starter = ["templates/**/*", "*.txt", "*.md"]
+modern_django_starter = ["templates/**/*", "templates/**/**/*"]
