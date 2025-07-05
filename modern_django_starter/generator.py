@@ -175,7 +175,7 @@ def health_check(request):
 
 class {app_name.title()}TestCase(TestCase):
     def test_placeholder(self):
-        \"\"\"Placeholder test.        \"\"\"
+        \"\"\"Placeholder test.\"\"\"
         self.assertTrue(True)
 """
         (app_dir / "tests.py").write_text(tests_content, encoding='utf-8')
@@ -521,7 +521,10 @@ urlpatterns = [
         
         # Base requirements
         requirements_template = self.env.get_template("requirements/base.txt.j2")
-        content = requirements_template.render(config=self.config)
+        content = requirements_template.render(
+            project_name=self.project_name,
+            config=self.config
+        )
         
         requirements_dir = self.project_dir / "requirements"
         requirements_dir.mkdir(exist_ok=True)
@@ -529,12 +532,18 @@ urlpatterns = [
         
         # Development requirements
         dev_requirements_template = self.env.get_template("requirements/development.txt.j2")
-        content = dev_requirements_template.render(config=self.config)
+        content = dev_requirements_template.render(
+            project_name=self.project_name,
+            config=self.config
+        )
         (requirements_dir / "development.txt").write_text(content, encoding='utf-8')
         
         # Production requirements
         prod_requirements_template = self.env.get_template("requirements/production.txt.j2")
-        content = prod_requirements_template.render(config=self.config)
+        content = prod_requirements_template.render(
+            project_name=self.project_name,
+            config=self.config
+        )
         (requirements_dir / "production.txt").write_text(content, encoding='utf-8')
         
         # Main requirements.txt
