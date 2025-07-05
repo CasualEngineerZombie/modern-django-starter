@@ -1,5 +1,10 @@
 # Modern Django Starter 🚀
 
+[![PyPI version](https://badge.fury.io/py/modern-django-starter.svg)](https://badge.fury.io/py/modern-django-starter)
+[![PyPI](https://img.shields.io/pypi/v/modern-django-starter)](https://pypi.org/project/modern-django-starter/)
+[![Python](https://img.shields.io/pypi/pyversions/modern-django-starter)](https://pypi.org/project/modern-django-starter/)
+[![Downloads](https://pepy.tech/badge/modern-django-starter)](https://pepy.tech/project/modern-django-starter)
+
 A CLI tool for generating Django 5.x projects with HTMX, AlpineJS, and more. Streamline your setup with customizable options for Docker, databases, cloud providers, and frontend pipelines. Build modern, reactive Django apps faster! 
 
 ## Installation
@@ -9,6 +14,8 @@ Install from PyPI:
 ```bash
 pip install modern-django-starter
 ```
+
+📦 **PyPI Package**: https://pypi.org/project/modern-django-starter/
 
 ## Quick Start
 
@@ -44,33 +51,43 @@ modern-django-starter create my_project --output-dir /path/to/projects
 
 ## Prerequisites
 
-- Python 3.x
+- Python 3.8+
 - pip
-- Node.js and npm (for frontend pipelines)
-- Docker (optional)
 
-## Installation
+Optional:
+- Node.js and npm (for frontend pipelines)
+- Docker (for containerized development)
+
+## Development Installation
+
+If you want to contribute or install from source:
 
 1. Clone this repository:
-   ```
+   ```bash
    git clone https://github.com/CasualEngineerZombie/modern-django-starter.git
    cd modern-django-starter
    ```
 
-2. Install the CLI tool:
-   ```
+2. Install in development mode:
+   ```bash
    pip install -e .
    ```
 
 ## Usage
 
-Run the CLI tool to generate your project:
+Generate a new Django project:
 
-```
-modern-django-starter create
+```bash
+modern-django-starter create my_awesome_project
 ```
 
-Follow the prompts to configure your project according to your needs.
+Or specify an output directory:
+
+```bash
+modern-django-starter create my_project --output-dir /path/to/projects
+```
+
+The CLI will guide you through configuration options interactively.
 
 ## Configuration Options
 
