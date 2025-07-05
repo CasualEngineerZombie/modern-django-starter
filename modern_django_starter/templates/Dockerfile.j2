@@ -30,8 +30,8 @@ RUN pip install --no-cache-dir -r requirements/production.txt
 
 {% if config.frontend_pipeline != 'none' %}
 # Install frontend dependencies
-COPY package.json package-lock.json ./
-RUN npm ci --only=production
+COPY package.json ./
+RUN npm install --only=production
 {% endif %}
 
 # Copy project

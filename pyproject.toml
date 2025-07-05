@@ -1,15 +1,15 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=61.0,<68", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
 name = "modern-django-starter"
-version = "0.1.2"
+version = "0.1.4"
 description = "A CLI tool for generating Django 5.x projects with HTMX, AlpineJS, and more"
 readme = "README.md"
-license = "MIT"
+license = { text = "MIT" }
 authors = [
-    {name = "Rian", email = "rian@example.com"}
+    { name = "Rian", email = "rian@pythonist.dev" }
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -21,7 +21,7 @@ classifiers = [
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
     "Framework :: Django",
-    "Topic :: Software Development :: Code Generators",
+    "Topic :: Software Development :: Code Generators"
 ]
 keywords = ["django", "htmx", "alpine", "tailwind", "starter", "boilerplate"]
 requires-python = ">=3.8"
@@ -30,7 +30,7 @@ dependencies = [
     "jinja2>=3.0.0",
     "cookiecutter>=2.0.0",
     "pyyaml>=6.0",
-    "rich>=13.0.0",
+    "rich>=13.0.0"
 ]
 
 [project.urls]
@@ -46,4 +46,4 @@ where = ["."]
 include = ["modern_django_starter*"]
 
 [tool.setuptools.package-data]
-modern_django_starter = ["templates/**/*", "templates/**/**/*"]
+modern_django_starter = ["templates/**/*"]

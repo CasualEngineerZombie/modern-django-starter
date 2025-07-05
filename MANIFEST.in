@@ -1,4 +1,3 @@
 include README.md
-include LICENSE
 recursive-include modern_django_starter/templates *
 recursive-include modern_django_starter/templates **/*
