@@ -25,6 +25,12 @@ A modern Django project generated with [modern-django-starter](https://github.co
 {% if config.use_sentry %}
 - **Sentry** - Error tracking and performance monitoring
 {% endif %}
+{% if config.use_stripe %}
+- **Stripe** - Payment processing and checkout integration
+{% endif %}
+{% if config.storage_provider != 'local' %}
+- **{{ config.storage_provider|title }} Storage** - Cloud object storage for media files
+{% endif %}
 {% if config.frontend_pipeline != 'none' %}
 - **{{ config.frontend_pipeline|title }}** - Modern frontend build pipeline
 {% endif %}
@@ -188,6 +194,42 @@ celery -A {{ project_name }} beat -l info
 ```
 {% endif %}
 
+{% if config.use_stripe %}
+### Payments with Stripe
+
+This project includes a complete Stripe integration with:
+
+- **Checkout Session**: Create secure payment sessions
+- **Webhook Handling**: Process payment events
+- **Order Management**: Track orders and payments
+- **Customer Management**: Automatic customer creation
+
+#### Setting up Stripe
+
+1. **Get your API keys** from the [Stripe Dashboard](https://dashboard.stripe.com/apikeys)
+2. **Add them to your `.env` file**:
+   ```bash
+   STRIPE_PUBLISHABLE_KEY=pk_test_your_key_here
+   STRIPE_SECRET_KEY=sk_test_your_key_here
+   ```
+3. **Set up webhooks** in the Stripe Dashboard:
+   - Add endpoint: `https://yourapp.com/payments/webhook/`
+   - Select events: `checkout.session.completed`
+   - Copy webhook secret to `STRIPE_WEBHOOK_SECRET`
+
+#### Available endpoints:
+- `/payments/checkout/` - Create a checkout session
+- `/payments/success/` - Payment success page
+- `/payments/cancel/` - Payment cancelled page
+- `/payments/orders/` - View user orders
+- `/payments/webhook/` - Stripe webhook endpoint
+
+#### Testing payments:
+Use [Stripe's test card numbers](https://stripe.com/docs/testing#cards):
+- `4242424242424242` - Successful payment
+- `4000000000000002` - Card declined
+{% endif %}
+
 ### Code Quality
 
 Run code formatting and linting:
@@ -246,6 +288,35 @@ Copy `.env.example` to `.env` and configure:
 {% endif %}
 {% if config.use_sentry %}
 - `SENTRY_DSN` - Sentry error tracking DSN
+{% endif %}
+{% if config.use_stripe %}
+- `STRIPE_PUBLISHABLE_KEY` - Stripe publishable key (starts with pk_)
+- `STRIPE_SECRET_KEY` - Stripe secret key (starts with sk_)
+- `STRIPE_WEBHOOK_SECRET` - Stripe webhook endpoint secret
+- `DJSTRIPE_WEBHOOK_SECRET` - dj-stripe webhook secret
+{% endif %}
+{% if config.storage_provider != 'local' %}
+
+### Storage Configuration
+{% if config.storage_provider == 'aws' %}
+- `AWS_ACCESS_KEY_ID` - AWS access key ID
+- `AWS_SECRET_ACCESS_KEY` - AWS secret access key
+- `AWS_STORAGE_BUCKET_NAME` - S3 bucket name
+- `AWS_S3_REGION_NAME` - AWS region (default: us-east-1)
+{% elif config.storage_provider == 'gcp' %}
+- `GCS_BUCKET_NAME` - Google Cloud Storage bucket name
+- `GOOGLE_APPLICATION_CREDENTIALS` - Path to service account JSON file
+{% elif config.storage_provider == 'azure' %}
+- `AZURE_ACCOUNT_NAME` - Azure storage account name
+- `AZURE_ACCOUNT_KEY` - Azure storage account key
+- `AZURE_CONTAINER` - Azure container name
+{% elif config.storage_provider == 'cloudflare-r2' %}
+- `AWS_ACCESS_KEY_ID` - Cloudflare R2 access key ID
+- `AWS_SECRET_ACCESS_KEY` - Cloudflare R2 secret access key
+- `AWS_STORAGE_BUCKET_NAME` - R2 bucket name
+- `AWS_S3_ENDPOINT_URL` - R2 endpoint URL (e.g., https://account-id.r2.cloudflarestorage.com)
+- `AWS_S3_REGION_NAME` - R2 region (default: auto)
+{% endif %}
 {% endif %}
 
 ## Contributing
