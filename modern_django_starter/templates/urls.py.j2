@@ -28,6 +28,9 @@ urlpatterns = [
 {% if config.use_drf %}
     path('api/', include('apps.api.urls')),
 {% endif %}
+{% if config.use_stripe %}
+    path('payments/', include('apps.payments.urls')),
+{% endif %}
 ]
 
 # Serve media files in development

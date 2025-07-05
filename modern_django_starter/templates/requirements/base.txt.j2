@@ -33,5 +33,11 @@ django-celery-results==2.5.1
 sentry-sdk==2.21.0
 {% endif %}
 
+{% if config.use_stripe %}
+# Payment processing
+stripe==11.3.0
+dj-stripe==2.9.5
+{% endif %}
+
 # Utilities
 python-dotenv==1.0.1

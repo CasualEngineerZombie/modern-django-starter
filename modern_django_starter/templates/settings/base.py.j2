@@ -50,11 +50,20 @@ THIRD_PARTY_APPS = [
     'django_celery_beat',
     'django_celery_results',
 {% endif %}
+{% if config.use_stripe %}
+    'djstripe',
+{% endif %}
+{% if config.storage_provider != 'local' %}
+    'storages',
+{% endif %}
 ]
 
 LOCAL_APPS = [
     'apps.core',
     'apps.accounts',
+{% if config.use_stripe %}
+    'apps.payments',
+{% endif %}
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -262,4 +271,69 @@ sentry_sdk.init(
     send_default_pii=True,
     environment=config('ENVIRONMENT', default='development'),
 )
+{% endif %}
+
+{% if config.use_stripe %}
+# Stripe configuration
+STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY', default='')
+STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
+
+# dj-stripe configuration
+DJSTRIPE_WEBHOOK_SECRET = config('DJSTRIPE_WEBHOOK_SECRET', default='')
+DJSTRIPE_USE_NATIVE_JSONFIELD = True
+DJSTRIPE_FOREIGN_KEY_TO_FIELD = 'id'
+DJSTRIPE_SUBSCRIBER_MODEL = 'auth.User'
+{% endif %}
+
+{% if config.storage_provider != 'local' %}
+# Storage configuration
+{% if config.storage_provider == 'aws' %}
+# AWS S3 storage configuration
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default='')
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default='')
+AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='us-east-1')
+AWS_S3_CUSTOM_DOMAIN = f'{AWS_STORAGE_BUCKET_NAME}.s3.amazonaws.com'
+AWS_DEFAULT_ACL = None
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+AWS_LOCATION = 'media'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+MEDIA_URL = f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
+
+{% elif config.storage_provider == 'cloudflare-r2' %}
+# Cloudflare R2 storage configuration (S3-compatible)
+AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
+AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default='')
+AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default='')
+AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL', default='')
+AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='auto')
+AWS_DEFAULT_ACL = None
+AWS_S3_OBJECT_PARAMETERS = {
+    'CacheControl': 'max-age=86400',
+}
+AWS_LOCATION = 'media'
+DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+MEDIA_URL = f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/{AWS_LOCATION}/'
+
+{% elif config.storage_provider == 'gcp' %}
+# Google Cloud Storage configuration
+from google.oauth2 import service_account
+GS_BUCKET_NAME = config('GCS_BUCKET_NAME', default='')
+GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+    config('GOOGLE_APPLICATION_CREDENTIALS', default='')
+)
+DEFAULT_FILE_STORAGE = 'storages.backends.gcloud.GoogleCloudStorage'
+GS_DEFAULT_ACL = None
+MEDIA_URL = f'https://storage.googleapis.com/{GS_BUCKET_NAME}/media/'
+
+{% elif config.storage_provider == 'azure' %}
+# Azure Storage configuration
+AZURE_ACCOUNT_NAME = config('AZURE_ACCOUNT_NAME', default='')
+AZURE_ACCOUNT_KEY = config('AZURE_ACCOUNT_KEY', default='')
+AZURE_CONTAINER = config('AZURE_CONTAINER', default='')
+DEFAULT_FILE_STORAGE = 'storages.backends.azure_storage.AzureStorage'
+MEDIA_URL = f'https://{AZURE_ACCOUNT_NAME}.blob.core.windows.net/{AZURE_CONTAINER}/media/'
+{% endif %}
 {% endif %}

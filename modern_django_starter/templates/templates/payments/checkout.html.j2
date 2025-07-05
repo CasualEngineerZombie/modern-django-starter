@@ -1,0 +1,77 @@
+{% raw %}{% extends 'base.html' %}{% endraw %}
+{% raw %}{% load static %}{% endraw %}
+
+{% raw %}{% block title %}Checkout{% endblock %}{% endraw %}
+
+{% raw %}{% block content %}{% endraw %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-md mx-auto bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold mb-6">Checkout</h2>
+        
+        <div class="mb-6">
+            <div class="border-b pb-4">
+                <h3 class="text-lg font-semibold mb-2">Order Summary</h3>
+                <div class="flex justify-between items-center">
+                    <span>Sample Product</span>
+                    <span>$29.99</span>
+                </div>
+            </div>
+            <div class="pt-4 flex justify-between items-center font-bold">
+                <span>Total</span>
+                <span>$29.99</span>
+            </div>
+        </div>
+        
+        <form method="post" id="checkout-form">
+            {% raw %}{% csrf_token %}{% endraw %}
+            <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                Pay with Stripe
+            </button>
+        </form>
+        
+        <div id="loading" class="hidden text-center mt-4">
+            <div class="spinner"></div>
+            <p>Processing your payment...</p>
+        </div>
+    </div>
+</div>
+
+<script>
+document.getElementById('checkout-form').addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const form = this;
+    const loadingDiv = document.getElementById('loading');
+    const submitButton = form.querySelector('button[type="submit"]');
+    
+    // Show loading state
+    submitButton.disabled = true;
+    loadingDiv.classList.remove('hidden');
+    
+    fetch('{% raw %}{% url "checkout" %}{% endraw %}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({})
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.checkout_url) {
+            window.location.href = data.checkout_url;
+        } else if (data.error) {
+            alert('Error: ' + data.error);
+            submitButton.disabled = false;
+            loadingDiv.classList.add('hidden');
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert('An error occurred. Please try again.');
+        submitButton.disabled = false;
+        loadingDiv.classList.add('hidden');
+    });
+});
+</script>
+{% raw %}{% endblock %}{% endraw %}

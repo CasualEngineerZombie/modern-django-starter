@@ -62,6 +62,16 @@ def create(project_name, output_dir):
         default='none'
     )
     
+    # Storage provider for media files
+    storage_providers = [
+        'local', 'aws', 'gcp', 'azure', 'cloudflare-r2'
+    ]
+    config['storage_provider'] = Prompt.ask(
+        "Storage provider for media files", 
+        choices=storage_providers, 
+        default='local'
+    )
+    
     # Email provider
     config['email_provider'] = Prompt.ask(
         "Email provider", 
@@ -74,6 +84,7 @@ def create(project_name, output_dir):
     config['use_drf'] = Confirm.ask("Add Django Rest Framework?", default=True)
     config['use_celery'] = Confirm.ask("Add Celery for background tasks?", default=True)
     config['use_sentry'] = Confirm.ask("Add Sentry error tracking?", default=True)
+    config['use_stripe'] = Confirm.ask("Add Stripe for payments?", default=False)
     
     # Frontend pipeline
     config['frontend_pipeline'] = Prompt.ask(
@@ -102,11 +113,13 @@ def create(project_name, output_dir):
     if config['use_postgresql']:
         table.add_row("PostgreSQL Version", config['postgresql_version'])
     table.add_row("Cloud Provider", config['cloud_provider'])
+    table.add_row("Storage Provider", config['storage_provider'])
     table.add_row("Email Provider", config['email_provider'])
     table.add_row("Async Support", "✅" if config['use_async'] else "❌")
     table.add_row("Django Rest Framework", "✅" if config['use_drf'] else "❌")
     table.add_row("Celery", "✅" if config['use_celery'] else "❌")
     table.add_row("Sentry", "✅" if config['use_sentry'] else "❌")
+    table.add_row("Stripe Payments", "✅" if config['use_stripe'] else "❌")
     table.add_row("Frontend Pipeline", config['frontend_pipeline'])
     table.add_row("CI Tool", config['ci_tool'])
     

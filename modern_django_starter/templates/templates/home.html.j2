@@ -44,6 +44,24 @@
                 </div>
             </div>
 
+            {% if config.use_stripe %}
+            <!-- Stripe demo -->
+            <div class="card bg-base-100 shadow-xl mb-6">
+                <div class="card-body">
+                    <h2 class="card-title">💳 Stripe Payments Demo</h2>
+                    <p>Try out the Stripe checkout integration:</p>
+                    <div class="card-actions justify-center">
+                        <a href="/payments/checkout/" class="btn btn-warning">
+                            Test Checkout ($29.99)
+                        </a>
+                        <a href="/payments/orders/" class="btn btn-info">
+                            View Orders
+                        </a>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+
             <!-- Features list -->
             <div class="card bg-base-100 shadow-xl">
                 <div class="card-body">
@@ -95,6 +113,18 @@
                         <div class="flex items-center space-x-2">
                             <span class="badge badge-success">✓</span>
                             <span>Celery</span>
+                        </div>
+                        {% endif %}
+                        {% if config.use_stripe %}
+                        <div class="flex items-center space-x-2">
+                            <span class="badge badge-success">✓</span>
+                            <span>Stripe Payments</span>
+                        </div>
+                        {% endif %}
+                        {% if config.storage_provider != 'local' %}
+                        <div class="flex items-center space-x-2">
+                            <span class="badge badge-success">✓</span>
+                            <span>{{ config.storage_provider|title }} Storage</span>
                         </div>
                         {% endif %}
                     </div>

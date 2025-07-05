@@ -107,6 +107,10 @@ class ProjectGenerator:
         # Create API app if DRF is enabled
         if self.config.get('use_drf'):
             self._create_django_app(apps_dir, "api")
+        
+        # Create payments app if Stripe is enabled
+        if self.config.get('use_stripe'):
+            self._create_payments_app(apps_dir)
     
     def _create_django_app(self, apps_dir, app_name):
         """Create a Django app with basic structure."""
@@ -203,6 +207,314 @@ urlpatterns = [
 """
         (app_dir / "urls.py").write_text(urls_content, encoding='utf-8')
     
+    def _create_payments_app(self, apps_dir):
+        """Create a payments app with Stripe integration."""
+        app_dir = apps_dir / "payments"
+        app_dir.mkdir(exist_ok=True)
+        
+        # Create __init__.py
+        (app_dir / "__init__.py").write_text("", encoding='utf-8')
+        
+        # Create apps.py
+        apps_py_content = """from django.apps import AppConfig
+
+
+class PaymentsConfig(AppConfig):
+    default_auto_field = 'django.db.models.BigAutoField'
+    name = 'apps.payments'
+    
+    def ready(self):
+        import apps.payments.signals
+"""
+        (app_dir / "apps.py").write_text(apps_py_content, encoding='utf-8')
+        
+        # Create models.py
+        models_content = """from django.db import models
+from django.contrib.auth.models import User
+from djstripe.models import Customer, Subscription
+
+
+class Order(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    stripe_checkout_session_id = models.CharField(max_length=255, blank=True)
+    total_amount = models.DecimalField(max_digits=10, decimal_places=2)
+    currency = models.CharField(max_length=3, default='USD')
+    status = models.CharField(max_length=50, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Order {self.id} - {self.user.email}"
+    
+    class Meta:
+        ordering = ['-created_at']
+
+
+class OrderItem(models.Model):
+    order = models.ForeignKey(Order, related_name='items', on_delete=models.CASCADE)
+    name = models.CharField(max_length=255)
+    quantity = models.PositiveIntegerField(default=1)
+    price = models.DecimalField(max_digits=10, decimal_places=2)
+    
+    def __str__(self):
+        return f"{self.name} x {self.quantity}"
+    
+    @property
+    def total_price(self):
+        return self.price * self.quantity
+"""
+        (app_dir / "models.py").write_text(models_content, encoding='utf-8')
+        
+        # Create views.py
+        views_content = """from django.shortcuts import render, redirect
+from django.contrib.auth.decorators import login_required
+from django.contrib import messages
+from django.conf import settings
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.utils.decorators import method_decorator
+from django.views.generic import ListView
+from django.views import View
+import stripe
+import json
+
+from .models import Order, OrderItem
+
+stripe.api_key = settings.STRIPE_SECRET_KEY
+
+
+@login_required
+def checkout_view(request):
+    \"\"\"Create a Stripe checkout session.\"\"\"
+    if request.method == 'POST':
+        try:
+            # Sample items - you would get these from your cart/request
+            items = [
+                {
+                    'name': 'Sample Product',
+                    'quantity': 1,
+                    'price': 29.99
+                }
+            ]
+            
+            # Create order
+            order = Order.objects.create(
+                user=request.user,
+                total_amount=sum(item['price'] * item['quantity'] for item in items),
+                currency='USD'
+            )
+            
+            # Create order items
+            for item in items:
+                OrderItem.objects.create(
+                    order=order,
+                    name=item['name'],
+                    quantity=item['quantity'],
+                    price=item['price']
+                )
+            
+            # Create Stripe checkout session
+            session = stripe.checkout.Session.create(
+                payment_method_types=['card'],
+                line_items=[
+                    {
+                        'price_data': {
+                            'currency': 'usd',
+                            'product_data': {
+                                'name': item['name'],
+                            },
+                            'unit_amount': int(item['price'] * 100),  # Convert to cents
+                        },
+                        'quantity': item['quantity'],
+                    } for item in items
+                ],
+                mode='payment',
+                success_url=request.build_absolute_uri('/payments/success/'),
+                cancel_url=request.build_absolute_uri('/payments/cancel/'),
+                metadata={
+                    'order_id': order.id,
+                    'user_id': request.user.id,
+                }
+            )
+            
+            # Update order with session ID
+            order.stripe_checkout_session_id = session.id
+            order.save()
+            
+            return JsonResponse({'checkout_url': session.url})
+            
+        except Exception as e:
+            messages.error(request, f'Error creating checkout session: {str(e)}')
+            return JsonResponse({'error': str(e)}, status=400)
+    
+    return render(request, 'payments/checkout.html')
+
+
+@login_required
+def success_view(request):
+    \"\"\"Handle successful payment.\"\"\"
+    return render(request, 'payments/success.html')
+
+
+@login_required
+def cancel_view(request):
+    \"\"\"Handle cancelled payment.\"\"\"
+    messages.info(request, 'Payment was cancelled.')
+    return render(request, 'payments/cancel.html')
+
+
+@method_decorator(csrf_exempt, name='dispatch')
+class StripeWebhookView(View):
+    \"\"\"Handle Stripe webhooks.\"\"\"
+    
+    def post(self, request):
+        payload = request.body
+        sig_header = request.META.get('HTTP_STRIPE_SIGNATURE')
+        endpoint_secret = settings.STRIPE_WEBHOOK_SECRET
+        
+        try:
+            event = stripe.Webhook.construct_event(
+                payload, sig_header, endpoint_secret
+            )
+        except ValueError:
+            return JsonResponse({'error': 'Invalid payload'}, status=400)
+        except stripe.error.SignatureVerificationError:
+            return JsonResponse({'error': 'Invalid signature'}, status=400)
+        
+        # Handle the event
+        if event['type'] == 'checkout.session.completed':
+            session = event['data']['object']
+            self._handle_checkout_session_completed(session)
+        
+        return JsonResponse({'status': 'success'})
+    
+    def _handle_checkout_session_completed(self, session):
+        \"\"\"Handle successful checkout session.\"\"\"
+        order_id = session.get('metadata', {}).get('order_id')
+        if order_id:
+            try:
+                order = Order.objects.get(id=order_id)
+                order.status = 'completed'
+                order.save()
+            except Order.DoesNotExist:
+                pass
+
+
+class OrderListView(ListView):
+    \"\"\"List user's orders.\"\"\"
+    model = Order
+    template_name = 'payments/orders.html'
+    context_object_name = 'orders'
+    
+    def get_queryset(self):
+        return Order.objects.filter(user=self.request.user)
+"""
+        (app_dir / "views.py").write_text(views_content, encoding='utf-8')
+        
+        # Create admin.py
+        admin_content = """from django.contrib import admin
+from .models import Order, OrderItem
+
+
+class OrderItemInline(admin.TabularInline):
+    model = OrderItem
+    extra = 0
+
+
+@admin.register(Order)
+class OrderAdmin(admin.ModelAdmin):
+    list_display = ['id', 'user', 'total_amount', 'status', 'created_at']
+    list_filter = ['status', 'created_at']
+    search_fields = ['user__email', 'stripe_checkout_session_id']
+    readonly_fields = ['created_at', 'updated_at']
+    inlines = [OrderItemInline]
+
+
+@admin.register(OrderItem)
+class OrderItemAdmin(admin.ModelAdmin):
+    list_display = ['order', 'name', 'quantity', 'price', 'total_price']
+    list_filter = ['order__created_at']
+    search_fields = ['name', 'order__user__email']
+"""
+        (app_dir / "admin.py").write_text(admin_content, encoding='utf-8')
+        
+        # Create signals.py
+        signals_content = """from django.db.models.signals import post_save
+from django.dispatch import receiver
+from django.contrib.auth.models import User
+from djstripe.models import Customer
+
+
+@receiver(post_save, sender=User)
+def create_stripe_customer(sender, instance, created, **kwargs):
+    \"\"\"Create a Stripe customer when a user is created.\"\"\"
+    if created:
+        Customer.get_or_create(subscriber=instance)
+"""
+        (app_dir / "signals.py").write_text(signals_content, encoding='utf-8')
+        
+        # Create tests.py
+        tests_content = """from django.test import TestCase
+from django.contrib.auth.models import User
+from .models import Order, OrderItem
+
+
+class PaymentsTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(
+            username='testuser',
+            email='test@example.com',
+            password='testpass123'
+        )
+    
+    def test_order_creation(self):
+        \"\"\"Test order creation.\"\"\"
+        order = Order.objects.create(
+            user=self.user,
+            total_amount=29.99,
+            currency='USD'
+        )
+        self.assertEqual(order.user, self.user)
+        self.assertEqual(order.total_amount, 29.99)
+        self.assertEqual(order.status, 'pending')
+    
+    def test_order_item_creation(self):
+        \"\"\"Test order item creation.\"\"\"
+        order = Order.objects.create(
+            user=self.user,
+            total_amount=29.99,
+            currency='USD'
+        )
+        
+        item = OrderItem.objects.create(
+            order=order,
+            name='Test Product',
+            quantity=2,
+            price=14.99
+        )
+        
+        self.assertEqual(item.total_price, 29.98)
+        self.assertEqual(order.items.count(), 1)
+"""
+        (app_dir / "tests.py").write_text(tests_content, encoding='utf-8')
+        
+        # Create urls.py
+        urls_content = """from django.urls import path
+from .views import (
+    checkout_view, success_view, cancel_view,
+    StripeWebhookView, OrderListView
+)
+
+urlpatterns = [
+    path('checkout/', checkout_view, name='checkout'),
+    path('success/', success_view, name='payment_success'),
+    path('cancel/', cancel_view, name='payment_cancel'),
+    path('orders/', OrderListView.as_view(), name='order_list'),
+    path('webhook/', StripeWebhookView.as_view(), name='stripe_webhook'),
+]
+"""
+        (app_dir / "urls.py").write_text(urls_content, encoding='utf-8')
+    
     def _generate_requirements(self):
         """Generate requirements files."""
         console.print("📋 Creating requirements files...")
@@ -279,6 +591,16 @@ urlpatterns = [
                 template = self.env.get_template(f"templates/account/{template_name}.j2")
                 content = template.render(config=self.config)
                 (auth_dir / template_name).write_text(content, encoding='utf-8')
+        
+        # Payment templates if Stripe is enabled
+        if self.config.get('use_stripe'):
+            payments_dir = templates_dir / "payments"
+            payments_dir.mkdir(exist_ok=True)
+            
+            for template_name in ["checkout.html", "success.html", "cancel.html", "orders.html"]:
+                template = self.env.get_template(f"templates/payments/{template_name}.j2")
+                content = template.render(config=self.config)
+                (payments_dir / template_name).write_text(content, encoding='utf-8')
     
     def _generate_static_files(self):
         """Generate static files."""
