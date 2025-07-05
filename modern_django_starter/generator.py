@@ -1,13 +1,8 @@
 """Project generator for modern Django projects."""
 
-import os
-import shutil
 from pathlib import Path
 from jinja2 import Environment, FileSystemLoader
 from rich.console import Console
-from rich.progress import Progress, TaskID, track
-import subprocess
-import sys
 
 console = Console()
 
@@ -56,19 +51,19 @@ class ProjectGenerator:
         # Create manage.py
         manage_py = self.env.get_template("manage.py.j2")
         content = manage_py.render(project_name=self.project_name)
-        (self.project_dir / "manage.py").write_text(content)
+        (self.project_dir / "manage.py").write_text(content, encoding='utf-8')
         
         # Create project package
         project_package = self.project_dir / self.project_name
         project_package.mkdir(exist_ok=True)
         
         # Create __init__.py
-        (project_package / "__init__.py").write_text("")
+        (project_package / "__init__.py").write_text("", encoding='utf-8')
         
         # Create settings
         settings_dir = project_package / "settings"
         settings_dir.mkdir(exist_ok=True)
-        (settings_dir / "__init__.py").write_text("")
+        (settings_dir / "__init__.py").write_text("", encoding='utf-8')
         
         # Generate settings files
         for settings_file in ["base.py", "development.py", "production.py"]:
@@ -77,22 +72,22 @@ class ProjectGenerator:
                 project_name=self.project_name,
                 config=self.config
             )
-            (settings_dir / settings_file).write_text(content)
+            (settings_dir / settings_file).write_text(content, encoding='utf-8')
         
         # Create urls.py
         urls_template = self.env.get_template("urls.py.j2")
         content = urls_template.render(config=self.config)
-        (project_package / "urls.py").write_text(content)
+        (project_package / "urls.py").write_text(content, encoding='utf-8')
         
         # Create wsgi.py and asgi.py
         wsgi_template = self.env.get_template("wsgi.py.j2")
         content = wsgi_template.render(project_name=self.project_name)
-        (project_package / "wsgi.py").write_text(content)
+        (project_package / "wsgi.py").write_text(content, encoding='utf-8')
         
         if self.config.get('use_async'):
             asgi_template = self.env.get_template("asgi.py.j2")
             content = asgi_template.render(project_name=self.project_name)
-            (project_package / "asgi.py").write_text(content)
+            (project_package / "asgi.py").write_text(content, encoding='utf-8')
     
     def _generate_django_apps(self):
         """Generate Django applications."""
@@ -101,7 +96,7 @@ class ProjectGenerator:
         # Create apps directory
         apps_dir = self.project_dir / "apps"
         apps_dir.mkdir(exist_ok=True)
-        (apps_dir / "__init__.py").write_text("")
+        (apps_dir / "__init__.py").write_text("", encoding='utf-8')
         
         # Create core app
         self._create_django_app(apps_dir, "core")
@@ -119,7 +114,7 @@ class ProjectGenerator:
         app_dir.mkdir(exist_ok=True)
         
         # Create __init__.py
-        (app_dir / "__init__.py").write_text("")
+        (app_dir / "__init__.py").write_text("", encoding='utf-8')
         
         # Create apps.py
         apps_py_content = f"""from django.apps import AppConfig
@@ -129,10 +124,10 @@ class {app_name.title()}Config(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'apps.{app_name}'
 """
-        (app_dir / "apps.py").write_text(apps_py_content)
+        (app_dir / "apps.py").write_text(apps_py_content, encoding='utf-8')
         
         # Create models.py
-        (app_dir / "models.py").write_text("from django.db import models\n\n# Create your models here.\n")
+        (app_dir / "models.py").write_text("from django.db import models\n\n# Create your models here.\n", encoding='utf-8')
         
         # Create views.py
         if app_name == "core":
@@ -165,10 +160,10 @@ def health_check(request):
         else:
             views_content = "from django.shortcuts import render\n\n# Create your views here.\n"
         
-        (app_dir / "views.py").write_text(views_content)
+        (app_dir / "views.py").write_text(views_content, encoding='utf-8')
         
         # Create admin.py
-        (app_dir / "admin.py").write_text("from django.contrib import admin\n\n# Register your models here.\n")
+        (app_dir / "admin.py").write_text("from django.contrib import admin\n\n# Register your models here.\n", encoding='utf-8')
         
         # Create tests.py
         tests_content = f"""from django.test import TestCase
@@ -176,10 +171,10 @@ def health_check(request):
 
 class {app_name.title()}TestCase(TestCase):
     def test_placeholder(self):
-        \"\"\"Placeholder test.\"\"\"
+        \"\"\"Placeholder test.        \"\"\"
         self.assertTrue(True)
 """
-        (app_dir / "tests.py").write_text(tests_content)
+        (app_dir / "tests.py").write_text(tests_content, encoding='utf-8')
         
         # Create urls.py for specific apps
         if app_name == "core":
@@ -206,7 +201,7 @@ urlpatterns = [
     # Add your URL patterns here
 ]
 """
-        (app_dir / "urls.py").write_text(urls_content)
+        (app_dir / "urls.py").write_text(urls_content, encoding='utf-8')
     
     def _generate_requirements(self):
         """Generate requirements files."""
@@ -218,20 +213,20 @@ urlpatterns = [
         
         requirements_dir = self.project_dir / "requirements"
         requirements_dir.mkdir(exist_ok=True)
-        (requirements_dir / "base.txt").write_text(content)
+        (requirements_dir / "base.txt").write_text(content, encoding='utf-8')
         
         # Development requirements
         dev_requirements_template = self.env.get_template("requirements/development.txt.j2")
         content = dev_requirements_template.render(config=self.config)
-        (requirements_dir / "development.txt").write_text(content)
+        (requirements_dir / "development.txt").write_text(content, encoding='utf-8')
         
         # Production requirements
         prod_requirements_template = self.env.get_template("requirements/production.txt.j2")
         content = prod_requirements_template.render(config=self.config)
-        (requirements_dir / "production.txt").write_text(content)
+        (requirements_dir / "production.txt").write_text(content, encoding='utf-8')
         
         # Main requirements.txt
-        (self.project_dir / "requirements.txt").write_text("-r requirements/development.txt\n")
+        (self.project_dir / "requirements.txt").write_text("-r requirements/development.txt\n", encoding='utf-8')
     
     def _generate_configuration_files(self):
         """Generate configuration files."""
@@ -243,12 +238,12 @@ urlpatterns = [
             project_name=self.project_name,
             config=self.config
         )
-        (self.project_dir / ".env.example").write_text(content)
+        (self.project_dir / ".env.example").write_text(content, encoding='utf-8')
         
         # .gitignore
         gitignore_template = self.env.get_template("gitignore.j2")
         content = gitignore_template.render(config=self.config)
-        (self.project_dir / ".gitignore").write_text(content)
+        (self.project_dir / ".gitignore").write_text(content, encoding='utf-8')
         
         # README.md
         readme_template = self.env.get_template("README.md.j2")
@@ -256,7 +251,7 @@ urlpatterns = [
             project_name=self.project_name,
             config=self.config
         )
-        (self.project_dir / "README.md").write_text(content)
+        (self.project_dir / "README.md").write_text(content, encoding='utf-8')
     
     def _generate_templates(self):
         """Generate HTML templates."""
@@ -268,12 +263,12 @@ urlpatterns = [
         # Base template
         base_template = self.env.get_template("templates/base.html.j2")
         content = base_template.render(config=self.config)
-        (templates_dir / "base.html").write_text(content)
+        (templates_dir / "base.html").write_text(content, encoding='utf-8')
         
         # Home template
         home_template = self.env.get_template("templates/home.html.j2")
         content = home_template.render(config=self.config)
-        (templates_dir / "home.html").write_text(content)
+        (templates_dir / "home.html").write_text(content, encoding='utf-8')
         
         # Authentication templates if allauth is enabled
         if True:  # Always include auth templates
@@ -283,7 +278,7 @@ urlpatterns = [
             for template_name in ["login.html", "signup.html", "logout.html"]:
                 template = self.env.get_template(f"templates/account/{template_name}.j2")
                 content = template.render(config=self.config)
-                (auth_dir / template_name).write_text(content)
+                (auth_dir / template_name).write_text(content, encoding='utf-8')
     
     def _generate_static_files(self):
         """Generate static files."""
@@ -307,12 +302,12 @@ urlpatterns = [
         # Generate main CSS file
         css_template = self.env.get_template("static/css/main.css.j2")
         content = css_template.render(config=self.config)
-        (css_dir / "main.css").write_text(content)
+        (css_dir / "main.css").write_text(content, encoding='utf-8')
         
         # Generate main JS file
         js_template = self.env.get_template("static/js/main.js.j2")
         content = js_template.render(config=self.config)
-        (js_dir / "main.js").write_text(content)
+        (js_dir / "main.js").write_text(content, encoding='utf-8')
         
         # Generate package.json if frontend pipeline is used
         if self.config.get('frontend_pipeline') != 'none':
@@ -321,13 +316,13 @@ urlpatterns = [
                 project_name=self.project_name,
                 config=self.config
             )
-            (self.project_dir / "package.json").write_text(content)
+            (self.project_dir / "package.json").write_text(content, encoding='utf-8')
             
             # Generate build configuration
             if self.config.get('frontend_pipeline') == 'vite':
                 vite_config_template = self.env.get_template("vite.config.js.j2")
                 content = vite_config_template.render(config=self.config)
-                (self.project_dir / "vite.config.js").write_text(content)
+                (self.project_dir / "vite.config.js").write_text(content, encoding='utf-8')
     
     def _generate_docker_files(self):
         """Generate Docker files."""
@@ -339,7 +334,7 @@ urlpatterns = [
         # Dockerfile
         dockerfile_template = self.env.get_template("Dockerfile.j2")
         content = dockerfile_template.render(config=self.config)
-        (self.project_dir / "Dockerfile").write_text(content)
+        (self.project_dir / "Dockerfile").write_text(content, encoding='utf-8')
         
         # docker-compose.yml
         docker_compose_template = self.env.get_template("docker-compose.yml.j2")
@@ -347,12 +342,12 @@ urlpatterns = [
             project_name=self.project_name,
             config=self.config
         )
-        (self.project_dir / "docker-compose.yml").write_text(content)
+        (self.project_dir / "docker-compose.yml").write_text(content, encoding='utf-8')
         
         # .dockerignore
         dockerignore_template = self.env.get_template("dockerignore.j2")
         content = dockerignore_template.render(config=self.config)
-        (self.project_dir / ".dockerignore").write_text(content)
+        (self.project_dir / ".dockerignore").write_text(content, encoding='utf-8')
     
     def _generate_ci_files(self):
         """Generate CI configuration files."""
@@ -370,4 +365,4 @@ urlpatterns = [
                 project_name=self.project_name,
                 config=self.config
             )
-            (github_dir / "ci.yml").write_text(content)
+            (github_dir / "ci.yml").write_text(content, encoding='utf-8')
