@@ -1,0 +1,62 @@
+{% raw %}{% extends 'base.html' %}{% endraw %}
+
+{% raw %}{% block title %}Your Orders{% endblock %}{% endraw %}
+
+{% raw %}{% block content %}{% endraw %}
+<div class="container mx-auto px-4 py-8">
+    <div class="bg-white rounded-lg shadow-md p-6">
+        <h2 class="text-2xl font-bold mb-6">Your Orders</h2>
+        
+        {% raw %}{% if orders %}{% endraw %}
+            <div class="space-y-4">
+                {% raw %}{% for order in orders %}{% endraw %}
+                    <div class="border rounded-lg p-4">
+                        <div class="flex justify-between items-start mb-2">
+                            <div>
+                                <h3 class="font-semibold">Order #{% raw %}{{ order.id }}{% endraw %}</h3>
+                                <p class="text-sm text-gray-600">{% raw %}{{ order.created_at|date:"M d, Y H:i" }}{% endraw %}</p>
+                            </div>
+                            <div class="text-right">
+                                <p class="font-bold">${{ "{{ order.total_amount }}" }}</p>
+                                <span class="inline-block px-2 py-1 text-xs rounded-full
+                                    {% raw %}{% if order.status == 'completed' %}{% endraw %}bg-green-100 text-green-800
+                                    {% raw %}{% elif order.status == 'pending' %}{% endraw %}bg-yellow-100 text-yellow-800
+                                    {% raw %}{% else %}{% endraw %}bg-red-100 text-red-800{% raw %}{% endif %}{% endraw %}">
+                                    {% raw %}{{ order.status|title }}{% endraw %}
+                                </span>
+                            </div>
+                        </div>
+                        
+                        {% raw %}{% if order.items.all %}{% endraw %}
+                            <div class="mt-3">
+                                <h4 class="text-sm font-medium mb-2">Items:</h4>
+                                <ul class="text-sm space-y-1">
+                                    {% raw %}{% for item in order.items.all %}{% endraw %}
+                                        <li class="flex justify-between">
+                                            <span>{% raw %}{{ item.name }}{% endraw %} × {% raw %}{{ item.quantity }}{% endraw %}</span>
+                                            <span>${{ "{{ item.total_price }}" }}</span>
+                                        </li>
+                                    {% raw %}{% endfor %}{% endraw %}
+                                </ul>
+                            </div>
+                        {% raw %}{% endif %}{% endraw %}
+                    </div>
+                {% raw %}{% endfor %}{% endraw %}
+            </div>
+        {% raw %}{% else %}{% endraw %}
+            <div class="text-center py-8">
+                <div class="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+                    <svg class="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-medium text-gray-900 mb-2">No orders yet</h3>
+                <p class="text-gray-500 mb-4">You haven't made any purchases yet.</p>
+                <a href="{% raw %}{% url 'checkout' %}{% endraw %}" class="inline-block bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded">
+                    Make Your First Purchase
+                </a>
+            </div>
+        {% raw %}{% endif %}{% endraw %}
+    </div>
+</div>
+{% raw %}{% endblock %}{% endraw %}
