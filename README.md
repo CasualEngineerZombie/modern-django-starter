@@ -33,7 +33,7 @@ modern-django-starter create my_project --output-dir /path/to/projects
 
 ## Features
 
-- Django 5.1
+- Django 5.x
 - HTMX for dynamic HTML updates
 - AlpineJS for lightweight JavaScript interactions
 - Django-allauth for authentication
