@@ -6,7 +6,6 @@ from rich.prompt import Prompt, Confirm
 from rich.table import Table
 import os
 import sys
-from pathlib import Path
 
 from .generator import ProjectGenerator
 
@@ -21,10 +20,14 @@ def cli():
 @cli.command()
 @click.argument('project_name', required=False)
 @click.option('--output-dir', '-o', default='.', help='Output directory for the project')
-def create(project_name, output_dir):
-    """Create a new Django project with modern features."""
+@click.option('--api-only', is_flag=True, default=False, help='Generate an API-only project (no frontend/templates, only DRF/CORS/JWT/Spectacular)')
+def create(project_name, output_dir, api_only):
+    """Create a new Django project with modern features or API-only DRF backend."""
     console.print("[bold green]🚀 Modern Django Starter[/bold green]")
-    console.print("Generate Django 5.x projects with HTMX, AlpineJS, and more!\n")
+    if api_only:
+        console.print("Generate Django 5.x API-only DRF backend (no frontend, no templates)\n")
+    else:
+        console.print("Generate Django 5.x projects with HTMX, AlpineJS, and more!\n")
     
     # Get project name if not provided
     if not project_name:
@@ -35,73 +38,118 @@ def create(project_name, output_dir):
         console.print("[red]❌ Project name should only contain letters, numbers, hyphens, and underscores[/red]")
         sys.exit(1)
     
-    # Configuration questions
     config = {}
     
-    console.print("\n[bold blue]📋 Configuration Options[/bold blue]")
-    
-    # Basic options
-    config['use_docker'] = Confirm.ask("Add Docker support?", default=True)
-    config['use_postgresql'] = Confirm.ask("Use PostgreSQL database?", default=True)
-    
-    if config['use_postgresql']:
-        config['postgresql_version'] = Prompt.ask(
-            "PostgreSQL version", 
-            choices=['13', '14', '15', '16'], 
-            default='16'
+    if api_only:
+        # API-only config, now with full prompts
+        config['use_docker'] = Confirm.ask("Add Docker support?", default=True)
+        config['use_postgresql'] = Confirm.ask("Use PostgreSQL database?", default=True)
+        if config['use_postgresql']:
+            config['postgresql_version'] = Prompt.ask(
+                "PostgreSQL version",
+                choices=['13', '14', '15', '16'],
+                default='16'
+            )
+        # Cloud provider
+        cloud_providers = [
+            'none', 'aws', 'azure', 'gcp', 'render', 'railway', 
+            'pythonanywhere', 'flyio', 'dokku', 'heroku'
+        ]
+        config['cloud_provider'] = Prompt.ask(
+            "Cloud provider", 
+            choices=cloud_providers, 
+            default='none'
         )
-    
-    # Cloud provider
-    cloud_providers = [
-        'none', 'aws', 'azure', 'gcp', 'render', 'railway', 
-        'pythonanywhere', 'flyio', 'dokku', 'heroku'
-    ]
-    config['cloud_provider'] = Prompt.ask(
-        "Cloud provider", 
-        choices=cloud_providers, 
-        default='none'
-    )
-    
-    # Storage provider for media files
-    storage_providers = [
-        'local', 'aws', 'gcp', 'azure', 'cloudflare-r2'
-    ]
-    config['storage_provider'] = Prompt.ask(
-        "Storage provider for media files", 
-        choices=storage_providers, 
-        default='local'
-    )
-    
-    # Email provider
-    config['email_provider'] = Prompt.ask(
-        "Email provider", 
-        choices=['none', 'sendgrid', 'mailgun', 'ses', 'postmark'], 
-        default='none'
-    )
-    
-    # Framework features
-    config['use_async'] = Confirm.ask("Enable asynchronous support?", default=False)
-    config['use_drf'] = Confirm.ask("Add Django Rest Framework?", default=True)
-    config['use_celery'] = Confirm.ask("Add Celery for background tasks?", default=True)
-    config['use_sentry'] = Confirm.ask("Add Sentry error tracking?", default=True)
-    config['use_stripe'] = Confirm.ask("Add Stripe for payments?", default=False)
-    
-    # Frontend pipeline
-    config['frontend_pipeline'] = Prompt.ask(
-        "Frontend pipeline", 
-        choices=['none', 'webpack', 'vite', 'parcel'], 
-        default='vite'
-    )
-    
-    # CI tools
-    config['ci_tool'] = Prompt.ask(
-        "CI tool", 
-        choices=['none', 'github-actions', 'gitlab-ci', 'travis', 'circleci'], 
-        default='github-actions'
-    )
+        # Storage provider for media files
+        storage_providers = [
+            'local', 'aws', 'gcp', 'azure', 'cloudflare-r2'
+        ]
+        config['storage_provider'] = Prompt.ask(
+            "Storage provider for media files", 
+            choices=storage_providers, 
+            default='local'
+        )
+        # Email provider
+        config['email_provider'] = Prompt.ask(
+            "Email provider", 
+            choices=['none', 'sendgrid', 'mailgun', 'ses', 'postmark'], 
+            default='none'
+        )
+        # Framework features
+        config['use_async'] = Confirm.ask("Enable asynchronous support?", default=False)
+        config['use_drf'] = True
+        config['use_celery'] = Confirm.ask("Add Celery for background tasks?", default=False)
+        config['use_sentry'] = Confirm.ask("Add Sentry error tracking?", default=False)
+        config['use_stripe'] = Confirm.ask("Add Stripe for payments?", default=False)
+        config['frontend_pipeline'] = 'none'
+        config['ci_tool'] = Prompt.ask(
+            "CI tool", 
+            choices=['none', 'github-actions', 'gitlab-ci', 'travis', 'circleci'], 
+            default='none'
+        )
+        config['api_only'] = True
+        # DRF extras
+        config['use_cors'] = True
+        config['use_drf_spectacular'] = True
+        config['use_jwt'] = True
+    else:
+        console.print("\n[bold blue]📋 Configuration Options[/bold blue]")
+        # Basic options
+        config['use_docker'] = Confirm.ask("Add Docker support?", default=True)
+        config['use_postgresql'] = Confirm.ask("Use PostgreSQL database?", default=True)
+        if config['use_postgresql']:
+            config['postgresql_version'] = Prompt.ask(
+                "PostgreSQL version", 
+                choices=['13', '14', '15', '16'], 
+                default='16'
+            )
+        # Cloud provider
+        cloud_providers = [
+            'none', 'aws', 'azure', 'gcp', 'render', 'railway', 
+            'pythonanywhere', 'flyio', 'dokku', 'heroku'
+        ]
+        config['cloud_provider'] = Prompt.ask(
+            "Cloud provider", 
+            choices=cloud_providers, 
+            default='none'
+        )
+        # Storage provider for media files
+        storage_providers = [
+            'local', 'aws', 'gcp', 'azure', 'cloudflare-r2'
+        ]
+        config['storage_provider'] = Prompt.ask(
+            "Storage provider for media files", 
+            choices=storage_providers, 
+            default='local'
+        )
+        # Email provider
+        config['email_provider'] = Prompt.ask(
+            "Email provider", 
+            choices=['none', 'sendgrid', 'mailgun', 'ses', 'postmark'], 
+            default='none'
+        )
+        # Framework features
+        config['use_async'] = Confirm.ask("Enable asynchronous support?", default=False)
+        config['use_drf'] = Confirm.ask("Add Django Rest Framework?", default=True)
+        config['use_celery'] = Confirm.ask("Add Celery for background tasks?", default=True)
+        config['use_sentry'] = Confirm.ask("Add Sentry error tracking?", default=True)
+        config['use_stripe'] = Confirm.ask("Add Stripe for payments?", default=False)
+        # Frontend pipeline
+        config['frontend_pipeline'] = Prompt.ask(
+            "Frontend pipeline", 
+            choices=['none', 'webpack', 'vite', 'parcel'], 
+            default='vite'
+        )
+        # CI tools
+        config['ci_tool'] = Prompt.ask(
+            "CI tool", 
+            choices=['none', 'github-actions', 'gitlab-ci', 'travis', 'circleci'], 
+            default='github-actions'
+        )
+        config['api_only'] = False
     
     # Display configuration summary
-    console.print(f"\n[bold blue]📊 Configuration Summary[/bold blue]")
+    console.print("\n[bold blue]📊 Configuration Summary[/bold blue]")
     table = Table(show_header=True, header_style="bold magenta")
     table.add_column("Option", style="cyan")
     table.add_column("Value", style="green")
@@ -117,6 +165,10 @@ def create(project_name, output_dir):
     table.add_row("Email Provider", config['email_provider'])
     table.add_row("Async Support", "✅" if config['use_async'] else "❌")
     table.add_row("Django Rest Framework", "✅" if config['use_drf'] else "❌")
+    if api_only:
+        table.add_row("CORS Support", "✅")
+        table.add_row("DRF Spectacular", "✅")
+        table.add_row("JWT Auth", "✅")
     table.add_row("Celery", "✅" if config['use_celery'] else "❌")
     table.add_row("Sentry", "✅" if config['use_sentry'] else "❌")
     table.add_row("Stripe Payments", "✅" if config['use_stripe'] else "❌")
