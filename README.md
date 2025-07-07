@@ -29,7 +29,25 @@ Or with options:
 
 ```bash
 modern-django-starter create my_project --output-dir /path/to/projects
-``` 
+```
+
+## API-Only Projects
+
+Generate a Django REST API project (no frontend, no templates/static) with all the essentials:
+
+- Django REST Framework (DRF)
+- JWT authentication (djangorestframework-simplejwt)
+- CORS support (django-cors-headers)
+- API schema & docs (drf-spectacular)
+- Registration/auth endpoints (dj-rest-auth, django-allauth)
+
+Example:
+
+```bash
+modern-django-starter create my_api_project --api-only
+```
+
+This will generate a minimal, production-ready Django API backend with all the above features and no frontend code.
 
 ## Features
 
@@ -44,6 +62,7 @@ modern-django-starter create my_project --output-dir /path/to/projects
 - Cloud provider integration options
 - Email provider integration
 - Django Rest Framework (DRF) support
+- **API-only mode**: Generate a DRF-only backend with JWT, CORS, Spectacular, dj-rest-auth, and allauth
 - Frontend pipeline options
 - Celery for background task processing
 - Sentry for error tracking
@@ -97,6 +116,7 @@ The CLI will guide you through configuration options interactively.
 - Email provider
 - Asynchronous support
 - Django Rest Framework
+- **API-only mode** (`--api-only`): DRF, JWT, CORS, Spectacular, dj-rest-auth, allauth, no frontend
 - Frontend pipeline
 - Celery
 - Sentry
