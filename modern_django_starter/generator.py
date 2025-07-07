@@ -28,62 +28,173 @@ class ProjectGenerator:
     def generate(self):
         """Generate the project."""
         console.print(f"[bold blue]🔨 Generating project '{self.project_name}'...[/bold blue]")
-        
         # Create project directory
         self.project_dir.mkdir(parents=True, exist_ok=True)
-        
         # Generate files
         self._generate_django_project()
         self._generate_django_apps()
         self._generate_requirements()
         self._generate_configuration_files()
-        self._generate_templates()
-        self._generate_static_files()
+        if not self.config.get('api_only'):
+            self._generate_templates()
+            self._generate_static_files()
         self._generate_docker_files()
         self._generate_ci_files()
-        
         console.print("[green]✅ Project structure generated successfully![/green]")
     
     def _generate_django_project(self):
         """Generate Django project structure."""
         console.print("📦 Creating Django project structure...")
-        
         # Create manage.py
         manage_py = self.env.get_template("manage.py.j2")
         content = manage_py.render(project_name=self.project_name)
         (self.project_dir / "manage.py").write_text(content, encoding='utf-8')
-        
         # Create project package
         project_package = self.project_dir / self.project_name
         project_package.mkdir(exist_ok=True)
-        
         # Create __init__.py
         (project_package / "__init__.py").write_text("", encoding='utf-8')
-        
         # Create settings
         settings_dir = project_package / "settings"
         settings_dir.mkdir(exist_ok=True)
         (settings_dir / "__init__.py").write_text("", encoding='utf-8')
-        
-        # Generate settings files
-        for settings_file in ["base.py", "development.py", "production.py"]:
-            template = self.env.get_template(f"settings/{settings_file}.j2")
-            content = template.render(
-                project_name=self.project_name,
-                config=self.config
-            )
-            (settings_dir / settings_file).write_text(content, encoding='utf-8')
-        
+        if self.config.get('api_only'):
+            # Minimal DRF-only settings
+            base_settings = f'''"""
+Minimal DRF-only settings for {self.project_name}
+"""
+import os
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent.parent.parent
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-me-in-production')
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
+
+INSTALLED_APPS = [
+    'django.contrib.admin',
+    'django.contrib.auth',
+    'django.contrib.contenttypes',
+    'django.contrib.sessions',
+    'django.contrib.messages',
+    'django.contrib.staticfiles',
+    'rest_framework',
+    'corsheaders',
+    'drf_spectacular',
+    'dj_rest_auth',
+    'allauth',
+    'allauth.account',
+    'allauth.socialaccount',
+]
+
+MIDDLEWARE = [
+    'django.middleware.security.SecurityMiddleware',
+    'django.contrib.sessions.middleware.SessionMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
+    'django.middleware.common.CommonMiddleware',
+    'django.middleware.csrf.CsrfViewMiddleware',
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'django.contrib.messages.middleware.MessageMiddleware',
+    'django.middleware.clickjacking.XFrameOptionsMiddleware',
+]
+
+ROOT_URLCONF = '{self.project_name}.urls'
+
+WSGI_APPLICATION = '{self.project_name}.wsgi.application'
+
+DATABASES = {{
+    'default': {{
+        'ENGINE': 'django.db.backends.postgresql' if {str(self.config.get('use_postgresql', False))} else 'django.db.backends.sqlite3',
+        'NAME': os.environ.get('DB_NAME', '{self.project_name}'),
+        'USER': os.environ.get('DB_USER', 'postgres'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5432'),
+    }} if {str(self.config.get('use_postgresql', False))} else {{
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }}
+}}
+
+LANGUAGE_CODE = 'en-us'
+TIME_ZONE = 'UTC'
+USE_I18N = True
+USE_TZ = True
+STATIC_URL = '/static/'
+STATIC_ROOT = BASE_DIR / 'staticfiles'
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# DRF, JWT, Spectacular
+REST_FRAMEWORK = {{
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',
+    ],
+}}
+
+SPECTACULAR_SETTINGS = {{
+    'TITLE': '{self.project_name} API',
+    'DESCRIPTION': 'API documentation',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}}
+
+CORS_ALLOW_ALL_ORIGINS = True
+
+# Email (console)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+DEFAULT_FROM_EMAIL = 'noreply@{self.project_name}.com'
+'''
+            for fname in ["base.py", "development.py", "production.py"]:
+                (settings_dir / fname).write_text(base_settings, encoding='utf-8')
+        else:
+            # Generate settings files
+            for settings_file in ["base.py", "development.py", "production.py"]:
+                template = self.env.get_template(f"settings/{settings_file}.j2")
+                content = template.render(
+                    project_name=self.project_name,
+                    config=self.config
+                )
+                (settings_dir / settings_file).write_text(content, encoding='utf-8')
         # Create urls.py
-        urls_template = self.env.get_template("urls.py.j2")
-        content = urls_template.render(config=self.config)
-        (project_package / "urls.py").write_text(content, encoding='utf-8')
-        
+        urls_path = project_package / "urls.py"
+        if self.config.get('api_only'):
+            urls_content = f'''"""
+Minimal DRF-only urls for {self.project_name}
+"""
+from django.contrib import admin
+from django.urls import path, include
+from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+urlpatterns = [
+    path('admin/', admin.site.urls),
+    # API schema and docs
+    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
+    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
+    # Auth endpoints (JWT, registration, password reset)
+    path('api/auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
+    path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/auth/', include('dj_rest_auth.urls')),
+    path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
+    # Main API
+    path('api/', include('apps.api.urls')),
+]
+'''
+            urls_path.write_text(urls_content, encoding='utf-8')
+        else:
+            urls_template = self.env.get_template("urls.py.j2")
+            content = urls_template.render(config=self.config)
+            urls_path.write_text(content, encoding='utf-8')
         # Create wsgi.py and asgi.py
         wsgi_template = self.env.get_template("wsgi.py.j2")
         content = wsgi_template.render(project_name=self.project_name)
         (project_package / "wsgi.py").write_text(content, encoding='utf-8')
-        
         if self.config.get('use_async'):
             asgi_template = self.env.get_template("asgi.py.j2")
             content = asgi_template.render(project_name=self.project_name)
@@ -92,25 +203,19 @@ class ProjectGenerator:
     def _generate_django_apps(self):
         """Generate Django applications."""
         console.print("🏗️  Creating Django applications...")
-        
-        # Create apps directory
         apps_dir = self.project_dir / "apps"
         apps_dir.mkdir(exist_ok=True)
         (apps_dir / "__init__.py").write_text("", encoding='utf-8')
-        
-        # Create core app
-        self._create_django_app(apps_dir, "core")
-        
-        # Create accounts app
-        self._create_django_app(apps_dir, "accounts")
-        
-        # Create API app if DRF is enabled
-        if self.config.get('use_drf'):
+        if self.config.get('api_only'):
+            # Only API app for api_only
             self._create_django_app(apps_dir, "api")
-        
-        # Create payments app if Stripe is enabled
-        if self.config.get('use_stripe'):
-            self._create_payments_app(apps_dir)
+        else:
+            self._create_django_app(apps_dir, "core")
+            self._create_django_app(apps_dir, "accounts")
+            if self.config.get('use_drf'):
+                self._create_django_app(apps_dir, "api")
+            if self.config.get('use_stripe'):
+                self._create_payments_app(apps_dir)
     
     def _create_django_app(self, apps_dir, app_name):
         """Create a Django app with basic structure."""
@@ -358,14 +463,14 @@ def success_view(request):
 
 @login_required
 def cancel_view(request):
-    \"\"\"Handle cancelled payment.\"\"\"
+    \"\"\"Handle cancelled payment.\"""
     messages.info(request, 'Payment was cancelled.')
     return render(request, 'payments/cancel.html')
 
 
 @method_decorator(csrf_exempt, name='dispatch')
 class StripeWebhookView(View):
-    \"\"\"Handle Stripe webhooks.\"\"\"
+    \"\"\"Handle Stripe webhooks.\"""
     
     def post(self, request):
         payload = request.body
@@ -389,7 +494,7 @@ class StripeWebhookView(View):
         return JsonResponse({'status': 'success'})
     
     def _handle_checkout_session_completed(self, session):
-        \"\"\"Handle successful checkout session.\"\"\"
+        \"\"\"Handle successful checkout session.\"""
         order_id = session.get('metadata', {}).get('order_id')
         if order_id:
             try:
@@ -401,7 +506,7 @@ class StripeWebhookView(View):
 
 
 class OrderListView(ListView):
-    \"\"\"List user's orders.\"\"\"
+    \"\"\"List user's orders.\"""
     model = Order
     template_name = 'payments/orders.html'
     context_object_name = 'orders'
@@ -447,7 +552,7 @@ from djstripe.models import Customer
 
 @receiver(post_save, sender=User)
 def create_stripe_customer(sender, instance, created, **kwargs):
-    \"\"\"Create a Stripe customer when a user is created.\"\"\"
+    \"\"\"Create a Stripe customer when a user is created.\"""
     if created:
         Customer.get_or_create(subscriber=instance)
 """
@@ -468,7 +573,7 @@ class PaymentsTestCase(TestCase):
         )
     
     def test_order_creation(self):
-        \"\"\"Test order creation.\"\"\"
+        \"\"\"Test order creation.\"""
         order = Order.objects.create(
             user=self.user,
             total_amount=29.99,
@@ -479,7 +584,7 @@ class PaymentsTestCase(TestCase):
         self.assertEqual(order.status, 'pending')
     
     def test_order_item_creation(self):
-        \"\"\"Test order item creation.\"\"\"
+        \"\"\"Test order item creation.\"""
         order = Order.objects.create(
             user=self.user,
             total_amount=29.99,
@@ -518,32 +623,46 @@ urlpatterns = [
     def _generate_requirements(self):
         """Generate requirements files."""
         console.print("📋 Creating requirements files...")
-        
-        # Base requirements
-        requirements_template = self.env.get_template("requirements/base.txt.j2")
-        content = requirements_template.render(config=self.config)
-        
         requirements_dir = self.project_dir / "requirements"
         requirements_dir.mkdir(exist_ok=True)
-        (requirements_dir / "base.txt").write_text(content, encoding='utf-8')
-        
-        # Development requirements
-        dev_requirements_template = self.env.get_template("requirements/development.txt.j2")
-        content = dev_requirements_template.render(config=self.config)
-        (requirements_dir / "development.txt").write_text(content, encoding='utf-8')
-        
-        # Production requirements
-        prod_requirements_template = self.env.get_template("requirements/production.txt.j2")
-        content = prod_requirements_template.render(config=self.config)
-        (requirements_dir / "production.txt").write_text(content, encoding='utf-8')
-        
-        # Main requirements.txt
-        (self.project_dir / "requirements.txt").write_text("-r requirements/development.txt\n", encoding='utf-8')
+        if self.config.get('api_only'):
+            # Minimal DRF API requirements
+            base_reqs = [
+                "Django>=5.0",
+                "djangorestframework",
+                "django-cors-headers",
+                "drf-spectacular",
+                "djangorestframework-simplejwt",
+                "dj-rest-auth",
+                "django-allauth",
+                "psycopg2-binary"
+            ]
+            (requirements_dir / "base.txt").write_text("\n".join(base_reqs) + "\n", encoding='utf-8')
+            (requirements_dir / "development.txt").write_text("-r base.txt\n", encoding='utf-8')
+            (requirements_dir / "production.txt").write_text("-r base.txt\n", encoding='utf-8')
+            (self.project_dir / "requirements.txt").write_text("-r requirements/development.txt\n", encoding='utf-8')
+        else:
+            # Base requirements
+            requirements_template = self.env.get_template("requirements/base.txt.j2")
+            content = requirements_template.render(config=self.config)
+            (requirements_dir / "base.txt").write_text(content, encoding='utf-8')
+            
+            # Development requirements
+            dev_requirements_template = self.env.get_template("requirements/development.txt.j2")
+            content = dev_requirements_template.render(config=self.config)
+            (requirements_dir / "development.txt").write_text(content, encoding='utf-8')
+            
+            # Production requirements
+            prod_requirements_template = self.env.get_template("requirements/production.txt.j2")
+            content = prod_requirements_template.render(config=self.config)
+            (requirements_dir / "production.txt").write_text(content, encoding='utf-8')
+            
+            # Main requirements.txt
+            (self.project_dir / "requirements.txt").write_text("-r requirements/development.txt\n", encoding='utf-8')
     
     def _generate_configuration_files(self):
         """Generate configuration files."""
         console.print("⚙️  Creating configuration files...")
-        
         # .env.example
         env_template = self.env.get_template("env.example.j2")
         content = env_template.render(
@@ -551,12 +670,10 @@ urlpatterns = [
             config=self.config
         )
         (self.project_dir / ".env.example").write_text(content, encoding='utf-8')
-        
         # .gitignore
         gitignore_template = self.env.get_template("gitignore.j2")
         content = gitignore_template.render(config=self.config)
         (self.project_dir / ".gitignore").write_text(content, encoding='utf-8')
-        
         # README.md
         readme_template = self.env.get_template("README.md.j2")
         content = readme_template.render(
