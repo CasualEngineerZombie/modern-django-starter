@@ -634,7 +634,8 @@ urlpatterns = [
                 "drf-spectacular",
                 "djangorestframework-simplejwt",
                 "dj-rest-auth",
-                "django-allauth"
+                "django-allauth",
+                "psycopg2-binary"
             ]
             (requirements_dir / "base.txt").write_text("\n".join(base_reqs) + "\n", encoding='utf-8')
             (requirements_dir / "development.txt").write_text("-r base.txt\n", encoding='utf-8')
