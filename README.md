@@ -55,7 +55,6 @@ This will generate a minimal, production-ready Django API backend with all the a
 - HTMX for dynamic HTML updates
 - AlpineJS for lightweight JavaScript interactions
 - Django-allauth for authentication
-- HyperScript for easy DOM manipulation
 - TailwindCSS and DaisyUI for styling
 - Docker support (optional)
 - PostgreSQL database
