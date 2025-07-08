@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "modern-django-starter"
-version = "0.2.2"
+version = "0.2.3"
 description = "A CLI tool for generating Django 5.x projects with HTMX, AlpineJS, and more"
 readme = "README.md"
 license = { text = "MIT" }
