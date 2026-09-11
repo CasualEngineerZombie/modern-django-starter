@@ -27,8 +27,8 @@ COPY requirements/ requirements/
 RUN pip install --no-cache-dir -r requirements/production.txt
 
 {% if config.frontend_pipeline != 'none' %}
-COPY package.json package-lock.json ./
-RUN npm ci
+COPY package.json ./
+RUN npm install
 {% endif %}
 
 COPY . .
