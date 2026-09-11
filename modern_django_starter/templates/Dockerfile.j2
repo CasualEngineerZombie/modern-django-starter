@@ -1,15 +1,12 @@
-# Use Python 3.11 slim image
-FROM python:3.11-slim
+# Use Python 3.14 slim image
+FROM python:3.14-slim
 
-# Set environment variables
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     DEBIAN_FRONTEND=noninteractive
 
-# Set work directory
 WORKDIR /app
 
-# Install system dependencies
 RUN apt-get update && apt-get install -y \
     build-essential \
     {% if config.use_postgresql %}
@@ -19,34 +16,33 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 {% if config.frontend_pipeline != 'none' %}
-# Install Node.js
-RUN curl -fsSL https://deb.nodesource.com/setup_18.x | bash - \
-    && apt-get install -y nodejs
+# Install Node.js 24 LTS
+RUN curl -fsSL https://deb.nodesource.com/setup_24.x | bash - \
+    && apt-get update \
+    && apt-get install -y nodejs \
+    && rm -rf /var/lib/apt/lists/*
 {% endif %}
 
-# Install Python dependencies
 COPY requirements/ requirements/
 RUN pip install --no-cache-dir -r requirements/production.txt
 
 {% if config.frontend_pipeline != 'none' %}
-# Install frontend dependencies
-COPY package.json package-lock.json ./
-RUN npm ci --only=production
+COPY package.json ./
+RUN npm install
 {% endif %}
 
-# Copy project
 COPY . .
 
-# Collect static files
+{% if config.frontend_pipeline != 'none' %}
+RUN npm run build
+{% endif %}
+
 RUN python manage.py collectstatic --noinput
 
-# Create non-root user
 RUN adduser --disabled-password --gecos '' appuser && \
     chown -R appuser:appuser /app
 USER appuser
 
-# Expose port
 EXPOSE 8000
 
-# Run gunicorn
 CMD ["gunicorn", "--bind", "0.0.0.0:8000", "{{ project_name }}.wsgi:application"]

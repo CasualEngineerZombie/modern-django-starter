@@ -5,7 +5,7 @@
 [![Python](https://img.shields.io/pypi/pyversions/modern-django-starter)](https://pypi.org/project/modern-django-starter/)
 [![Downloads](https://pepy.tech/badge/modern-django-starter)](https://pepy.tech/project/modern-django-starter)
 
-A CLI tool for generating Django 5.x projects with HTMX, AlpineJS, and more. Streamline your setup with customizable options for Docker, databases, cloud providers, and frontend pipelines. Build modern, reactive Django apps faster! 
+A CLI tool for generating modern Django 6.1 projects with HTMX, AlpineJS, and more. Streamline your setup with customizable options for Docker, databases, cloud providers, authentication, background tasks, storage, and frontend pipelines.
 
 ## Installation
 
@@ -31,9 +31,11 @@ Or with options:
 modern-django-starter create my_project --output-dir /path/to/projects
 ```
 
+Project names must be valid Python identifiers because Django uses the project name as the Python package name.
+
 ## API-Only Projects
 
-Generate a Django REST API project (no frontend, no templates/static) with all the essentials:
+Generate a Django REST API project with no frontend, templates, or static assets:
 
 - Django REST Framework (DRF)
 - JWT authentication (djangorestframework-simplejwt)
@@ -47,21 +49,19 @@ Example:
 modern-django-starter create my_api_project --api-only
 ```
 
-This will generate a minimal, production-ready Django API backend with all the above features and no frontend code.
-
 ## Features
 
-- Django 5.x
+- Django 6.1
 - HTMX for dynamic HTML updates
 - AlpineJS for lightweight JavaScript interactions
 - Django-allauth for authentication
 - TailwindCSS and DaisyUI for styling
 - Docker support (optional)
-- PostgreSQL database
+- PostgreSQL 15, 16, 17, or 18
 - Cloud provider integration options
-- Email provider integration
-- Django Rest Framework (DRF) support
-- **API-only mode**: Generate a DRF-only backend with JWT, CORS, Spectacular, dj-rest-auth, and allauth
+- Email provider integration using Django 6.1 MAILERS
+- Django REST Framework (DRF) support
+- **API-only mode**: DRF, JWT, CORS, Spectacular, dj-rest-auth, and allauth
 - Frontend pipeline options
 - Celery for background task processing
 - Sentry for error tracking
@@ -69,7 +69,7 @@ This will generate a minimal, production-ready Django API backend with all the a
 
 ## Prerequisites
 
-- Python 3.8+
+- Python 3.12+
 - pip
 
 Optional:
@@ -111,10 +111,10 @@ The CLI will guide you through configuration options interactively.
 
 - Docker support
 - PostgreSQL version
-- Cloud provider (AWS, Azure, GCP, Render, Railway, PythonAnywhere, Flyio, Dokku, Heroku, or none)
+- Cloud provider (AWS, Azure, GCP, Render, Railway, PythonAnywhere, Fly.io, Dokku, Heroku, or none)
 - Email provider
 - Asynchronous support
-- Django Rest Framework
+- Django REST Framework
 - **API-only mode** (`--api-only`): DRF, JWT, CORS, Spectacular, dj-rest-auth, allauth, no frontend
 - Frontend pipeline
 - Celery

@@ -4,11 +4,9 @@ Production settings for {{ project_name }} project.
 
 from .base import *
 
-# SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
 # Security settings
-SECURE_BROWSER_XSS_FILTER = True
 SECURE_CONTENT_TYPE_NOSNIFF = True
 SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 SECURE_HSTS_SECONDS = 31536000
@@ -19,11 +17,10 @@ SESSION_COOKIE_SECURE = True
 CSRF_COOKIE_SECURE = True
 X_FRAME_OPTIONS = 'DENY'
 
-# Static files for production
-STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.StaticFilesStorage'
+# Static storage is configured through STORAGES in base.py.
 
-# Cache configuration for production
-{% if config.use_postgresql %}
+# Cache configuration
+{% if config.use_celery %}
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
@@ -34,6 +31,7 @@ CACHES = {
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': '{{ project_name }}-production',
     }
 }
 {% endif %}
@@ -74,6 +72,6 @@ LOGGING = {
     },
 }
 
-# Create logs directory
+# Create logs directory before Django configures logging.
 import os
 os.makedirs(BASE_DIR / 'logs', exist_ok=True)
