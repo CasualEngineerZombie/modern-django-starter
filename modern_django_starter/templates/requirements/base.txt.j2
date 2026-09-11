@@ -6,7 +6,7 @@ psycopg2-binary==2.9.13
 
 # Core dependencies
 python-decouple==3.8
-Pillow==11.3.0
+Pillow==11.0.0
 
 # Authentication
 django-allauth==65.19.2
@@ -17,7 +17,7 @@ django-widget-tweaks==1.5.0
 {% if config.use_drf %}
 # Django REST Framework
 djangorestframework==3.18.1
-django-cors-headers==4.9.0
+django-cors-headers==4.6.0
 {% endif %}
 
 {% if config.api_only %}
@@ -29,22 +29,22 @@ dj-rest-auth==7.2.0
 
 {% if config.use_celery %}
 # Background tasks
-celery==5.5.3
-redis==6.4.0
-django-celery-beat==2.8.1
-django-celery-results==2.6.0
+celery==5.4.0
+redis==5.2.1
+django-celery-beat==2.8.0
+django-celery-results==2.5.1
 {% endif %}
 
 {% if config.use_sentry %}
 # Error tracking
-sentry-sdk==2.35.0
+sentry-sdk==2.21.0
 {% endif %}
 
 {% if config.use_stripe %}
 # Payment processing
-stripe==12.5.0
+stripe==11.3.0
 dj-stripe==2.9.5
 {% endif %}
 
 # Utilities
-python-dotenv==1.1.1
+python-dotenv==1.0.1
