@@ -9,6 +9,17 @@ services:
     environment:
       - DEBUG=1
       - DJANGO_SETTINGS_MODULE={{ project_name }}.settings.development
+      {% if config.use_postgresql %}
+      - DB_NAME={{ project_name }}
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      {% endif %}
+      {% if config.use_celery %}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
+      {% endif %}
     depends_on:
       {% if config.use_postgresql %}
       db:
@@ -16,7 +27,7 @@ services:
       {% endif %}
       {% if config.use_celery %}
       redis:
-        condition: service_started
+        condition: service_healthy
       {% endif %}
     command: python manage.py runserver 0.0.0.0:8000
 
@@ -64,6 +75,15 @@ services:
     environment:
       - DEBUG=1
       - DJANGO_SETTINGS_MODULE={{ project_name }}.settings.development
+      {% if config.use_postgresql %}
+      - DB_NAME={{ project_name }}
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      {% endif %}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
 
   celery-beat:
     build: .
@@ -80,6 +100,15 @@ services:
     environment:
       - DEBUG=1
       - DJANGO_SETTINGS_MODULE={{ project_name }}.settings.development
+      {% if config.use_postgresql %}
+      - DB_NAME={{ project_name }}
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - DB_HOST=db
+      - DB_PORT=5432
+      {% endif %}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
   {% endif %}
 
 volumes:
