@@ -33,6 +33,7 @@ THIRD_PARTY_APPS = [
     'widget_tweaks',
 {% if config.use_drf %}
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
 {% endif %}
 {% if config.use_celery %}
