@@ -297,6 +297,18 @@ class GeneratedProjectRegressionUnitTests(unittest.TestCase):
         self.assertIn('OrderViewSet', payments_urls)
         self.assertIn('CheckoutViewSet', payments_urls)
 
+    def test_api_only_stripe_requirements_use_correct_package_name(self):
+        """API-only projects with Stripe must depend on 'dj-stripe' (PyPI name with hyphen)."""
+        project = self.generate('api_stripe_req', _sqlite_config(api_only=True, use_stripe=True))
+        base_txt = self.read(project, 'requirements/base.txt')
+        # The PyPI package is 'dj-stripe', importable as 'djstripe'
+        self.assertIn('dj-stripe', base_txt)
+        # Ensure the incorrect bare 'djstripe' (no hyphen) is not present as a package spec
+        for line in base_txt.splitlines():
+            stripped = line.strip()
+            if stripped.startswith('djstripe') and not stripped.startswith('dj-stripe'):
+                self.fail(f'Found bare "djstripe" package spec in base.txt: {line!r}')
+
     def test_generated_output_has_no_stale_django_51_references(self):
         # The generator emits Django 6.1 projects; the scaffolded docs links,
         # README features, and homepage badge must never point at Django 5.1.

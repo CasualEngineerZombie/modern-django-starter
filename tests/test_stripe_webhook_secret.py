@@ -88,6 +88,16 @@ class StripeWebhookSecretGenerationTests(unittest.TestCase):
             '.env.example still lists STRIPE_WEBHOOK_SECRET',
         )
 
+    def test_requirements_use_correct_djstripe_package_name(self):
+        """Full mode projects with Stripe must depend on 'dj-stripe' (PyPI name with hyphen)."""
+        base_lines = self.read_project_file('requirements/base.txt')
+        base_txt = '\n'.join(base_lines)
+        self.assertIn('dj-stripe', base_txt)
+        for line in base_lines:
+            stripped = line.strip()
+            if stripped.startswith('djstripe') and not stripped.startswith('dj-stripe'):
+                self.fail(f'Found bare "djstripe" package spec in base.txt: {line!r}')
+
     def test_readme_references_a_single_webhook_secret(self):
         lines = self.read_project_file('README.md')
         self.assertTrue(

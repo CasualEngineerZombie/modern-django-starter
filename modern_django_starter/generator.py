@@ -892,7 +892,7 @@ urlpatterns = [
             if self.config.get('use_sentry'):
                 base_reqs.append('sentry-sdk')
             if self.config.get('use_stripe'):
-                base_reqs.append('djstripe')
+                base_reqs.append('dj-stripe')
                 base_reqs.append('stripe')
             (requirements_dir / 'base.txt').write_text(
                 '\n'.join(base_reqs) + '\n', encoding='utf-8'
