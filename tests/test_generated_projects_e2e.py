@@ -202,7 +202,11 @@ class DockerComposeYamlUnitTests(unittest.TestCase):
                         (project / 'docker-compose.yml').read_text(encoding='utf-8')
                     )
                     self.assertIn('web', data['services'])
-                    self.assertEqual(data['services']['web']['build'], '.')
+                    self.assertEqual(data['services']['web']['build']['context'], '.')
+                    self.assertEqual(
+                        data['services']['web']['build']['args']['REQUIREMENTS'],
+                        'requirements/development.txt',
+                    )
                     if entry['config'].get('use_postgresql'):
                         self.assertIn('db', data['services'])
                     if entry['config'].get('use_celery'):
@@ -312,6 +316,114 @@ class GeneratedProjectRegressionUnitTests(unittest.TestCase):
         self.assertEqual(
             data16['services']['db']['volumes'], ['postgres_data:/var/lib/postgresql/data/']
         )
+
+    def test_docker_entrypoint_generated_with_init_flow(self):
+        project = self.generate(
+            'boot',
+            _sqlite_config(
+                use_docker=True, use_postgresql=True, postgresql_version='18', use_celery=True
+            ),
+        )
+        # Unix line endings only: /bin/sh rejects CRLF scripts, and the
+        # generator must write this file with explicit LF on Windows hosts.
+        self.assertNotIn(b'\r', (project / 'entrypoint.sh').read_bytes())
+        entrypoint = self.read(project, 'entrypoint.sh')
+        for needle in (
+            'migrate --noinput',
+            'collectstatic --noinput',
+            'exec "$@"',
+            'SKIP_INIT',
+            'DB_HOST',
+            'CELERY_BROKER_URL',
+        ):
+            with self.subTest(needle=needle):
+                self.assertIn(needle, entrypoint)
+
+    def test_docker_entrypoint_not_generated_without_docker(self):
+        project = self.generate('plain', _sqlite_config())
+        self.assertFalse((project / 'entrypoint.sh').exists())
+
+    def test_docker_compose_wires_entrypoint_user_and_healthcheck(self):
+        project = self.generate(
+            'wiring',
+            _sqlite_config(
+                use_docker=True, use_postgresql=True, postgresql_version='18', use_celery=True
+            ),
+        )
+        data = yaml.safe_load(self.read(project, 'docker-compose.yml'))
+        for service in ('web', 'celery', 'celery-beat'):
+            with self.subTest(service=service):
+                self.assertEqual(
+                    data['services'][service]['entrypoint'], ['/bin/sh', '/app/entrypoint.sh']
+                )
+                self.assertEqual(data['services'][service]['user'], '${UID:-1000}:${GID:-1000}')
+                self.assertEqual(
+                    data['services'][service]['build']['args']['REQUIREMENTS'],
+                    'requirements/development.txt',
+                )
+                self.assertEqual(data['services'][service]['build']['context'], '.')
+        self.assertEqual(
+            data['services']['web']['command'], 'python manage.py runserver 0.0.0.0:8000'
+        )
+        self.assertIn('healthcheck', data['services']['web'])
+        self.assertNotIn('healthcheck', data['services']['celery'])
+
+    def test_dockerfile_ships_the_entrypoint(self):
+        project = self.generate('ship', _sqlite_config(use_docker=True))
+        self.assertIn('chmod +x entrypoint.sh', self.read(project, 'Dockerfile'))
+
+    def test_dockerfile_gunicorn_command_uses_project_name(self):
+        # Regression: the Dockerfile's production CMD must reference the real
+        # project module, not a bare ".wsgi:application" (project_name was not
+        # passed to the template render until issue #16).
+        project = self.generate('prod_cmd', _sqlite_config(use_docker=True))
+        dockerfile = self.read(project, 'Dockerfile')
+        self.assertIn('prod_cmd.wsgi:application', dockerfile)
+        self.assertNotIn('".wsgi:application"', dockerfile)
+
+    def test_dockerfile_requirements_default_to_production(self):
+        # A plain `docker build .` (deployment, generated-project CI) installs
+        # production.txt by default; compose passes the dev override as a build
+        # arg (see the wiring test above).
+        project = self.generate('req_arg', _sqlite_config(use_docker=True))
+        dockerfile = self.read(project, 'Dockerfile')
+        self.assertIn('ARG REQUIREMENTS=requirements/production.txt', dockerfile)
+        self.assertIn('pip install --no-cache-dir -r ${REQUIREMENTS}', dockerfile)
+
+    def test_generated_ci_docker_check_runs_under_production_settings(self):
+        # The generated project's docker CI job builds the default (production)
+        # image; `manage.py check` must not run under the default development
+        # settings module, which imports dev-only apps not in the image.
+        project = self.generate(
+            'ci_docker', _sqlite_config(use_docker=True, ci_tool='github-actions')
+        )
+        ci = self.read(project, '.github/workflows/ci.yml')
+        self.assertIn('DJANGO_SETTINGS_MODULE=ci_docker.settings.production', ci)
+
+    def test_dockerfile_build_time_collectstatic_uses_production_settings(self):
+        # The image only installs requirements/production.txt, but the default
+        # settings module (development) imports dev-only apps like
+        # debug_toolbar — a build-time `collectstatic` under the default module
+        # fails with ModuleNotFoundError on a fresh `docker compose up --build`.
+        for name in ('cs_prod_a', 'cs_prod_b'):
+            with self.subTest(name=name):
+                project = self.generate(name, _sqlite_config(use_docker=True))
+                dockerfile = self.read(project, 'Dockerfile')
+                self.assertIn(
+                    f'DJANGO_SETTINGS_MODULE={name}.settings.production',
+                    dockerfile,
+                )
+
+    def test_dockerfile_includes_pillow_build_deps(self):
+        # Pillow 11.0.0 has no cp314 wheels, so the image build compiles it from
+        # source on python:3.14-slim and needs the zlib/JPEG dev headers —
+        # without them a fresh `docker compose up --build` fails at pip install.
+        for name in ('pillow_a', 'pillow_b'):
+            with self.subTest(name=name):
+                project = self.generate(name, _sqlite_config(use_docker=True))
+                dockerfile = self.read(project, 'Dockerfile')
+                self.assertIn('zlib1g-dev', dockerfile)
+                self.assertIn('libjpeg62-turbo-dev', dockerfile)
 
 
 @unittest.skipUnless(RUN_INTEGRATION, 'set RUN_DJANGO_INTEGRATION_TESTS=1 to run')
@@ -486,11 +598,89 @@ class PostgresProjectIntegrationTests(unittest.TestCase):
             self._manage('test', label)
 
 
-def _wait_for_healthy(compose_args, timeout=120):
-    """Wait until the ``db`` service health check reports healthy."""
+@unittest.skipUnless(RUN_INTEGRATION, 'set RUN_DJANGO_INTEGRATION_TESTS=1 to run')
+@unittest.skipUnless(shutil.which('docker'), 'docker is not available')
+class DockerComposeStackIntegrationTests(unittest.TestCase):
+    """A fresh ``docker compose up`` boots a healthy, initialized project.
+
+    Issue #16: the generated Compose stack must be bootable without manual
+    steps — the entrypoint waits for dependencies, applies migrations, and
+    collects static files before the application starts. This test builds the
+    generated image, runs ``docker compose up -d --build web`` (which also
+    starts the ``db`` dependency), waits for the ``web`` healthcheck to report
+    healthy, then proves the entrypoint initialized the app.
+    """
+
+    ENTRY = {
+        'name': 'stack-boot',
+        'project_name': 'e2e_stack_boot',
+        'config': _sqlite_config(
+            use_docker=True,
+            use_postgresql=True,
+            postgresql_version='18',
+            ci_tool='github-actions',
+        ),
+    }
+
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        tmp = tempfile.TemporaryDirectory()
+        cls._tmp = tmp
+        cls.addClassCleanup(tmp.cleanup)
+        cls.root = Path(tmp.name)
+        cls.project = _generate(cls.ENTRY, cls.root)
+
+        # Run web containers as the user owning the project so bind-mount
+        # writes (staticfiles/, etc.) match the host filesystem ownership.
+        # The generated compose file defaults to 1000:1000 when unset.
+        uid, gid = cls.project.stat().st_uid, cls.project.stat().st_gid
+        cls.compose_env = {**os.environ, 'UID': str(uid), 'GID': str(gid)}
+        cls.compose_file = cls.project / 'docker-compose.yml'
+        cls._compose = ['docker', 'compose', '-f', cls.compose_file]
+
+        up = _run_command(*cls._compose, 'up', '-d', '--build', 'web', env=cls.compose_env)
+        if up.returncode != 0:
+            logs = _run_command(*cls._compose, 'logs', '--tail', '80', 'web', env=cls.compose_env)
+            raise RuntimeError(
+                f'docker compose up failed:\n{up.stdout}{up.stderr}'
+                f'\n--- docker compose logs web ---\n{logs.stdout}{logs.stderr}'
+            )
+        cls.addClassCleanup(_run_command, *cls._compose, 'down', '-v', env=cls.compose_env)
+        try:
+            _wait_for_healthy(cls._compose, service='web', timeout=240, env=cls.compose_env)
+        except RuntimeError as exc:
+            logs = _run_command(*cls._compose, 'logs', '--tail', '80', 'web', env=cls.compose_env)
+            raise RuntimeError(
+                f'{exc}\n--- docker compose logs web ---\n{logs.stdout}{logs.stderr}'
+            ) from exc
+
+    def _compose_run(self, *args):
+        return _run_command(*self._compose, *args, cwd=self.project, env=self.compose_env)
+
+    def test_stack_boots_healthy_and_initialized(self):
+        # The entrypoint applied migrations before the server started, so a
+        # second migrate has nothing to do.
+        migrate = self._compose_run(
+            'exec', '-T', 'web', 'python', 'manage.py', 'migrate', '--noinput'
+        )
+        self.assertEqual(migrate.returncode, 0, f'{migrate.stdout}{migrate.stderr}')
+        self.assertIn('No migrations to apply', migrate.stdout)
+        # collectstatic output landed in the bind-mounted staticfiles/ dir.
+        staticfiles = self.project / 'staticfiles'
+        self.assertTrue(staticfiles.is_dir())
+        self.assertGreater(
+            len([p for p in staticfiles.rglob('*') if p.is_file()]),
+            0,
+            'collectstatic produced no files',
+        )
+
+
+def _wait_for_healthy(compose_args, service='db', timeout=120, env=None):
+    """Wait until a compose service health check reports healthy."""
     deadline = time.time() + timeout
     while time.time() < deadline:
-        cid = _run_command(*compose_args, 'ps', '-q', 'db')
+        cid = _run_command(*compose_args, 'ps', '-q', service, env=env)
         container_id = cid.stdout.strip()
         if container_id:
             status = _run_command(
@@ -500,9 +690,9 @@ def _wait_for_healthy(compose_args, timeout=120):
             if state == 'healthy':
                 return
             if state == 'unhealthy':
-                raise RuntimeError(f'db service unhealthy: {status.stderr}')
+                raise RuntimeError(f'{service} service unhealthy: {status.stderr}')
         time.sleep(2)
-    raise RuntimeError(f'timed out after {timeout}s waiting for db service to be healthy')
+    raise RuntimeError(f'timed out after {timeout}s waiting for {service} to be healthy')
 
 
 if __name__ == '__main__':

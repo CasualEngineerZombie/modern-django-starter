@@ -8,7 +8,7 @@ and config files — no flags to memorize.
 
 | Option | Choices | Default | Notes |
 |---|---|---|---|
-| **Docker** | yes / no | yes | Adds `Dockerfile`, `docker-compose.yml`, `.dockerignore` |
+| **Docker** | yes / no | yes | Adds `Dockerfile`, `docker-compose.yml`, `entrypoint.sh`, `.dockerignore` |
 | **PostgreSQL** | yes / no | yes | `no` falls back to SQLite |
 | PostgreSQL version | 15, 16, 17, 18 | 18 | Applied to the compose file |
 | **Cloud provider** | none, AWS, Azure, GCP, Render, Railway, PythonAnywhere, Fly.io, Dokku, Heroku | none | Adds deployment guidance in the generated README |

@@ -8,6 +8,28 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 Sections without a date below are pre-tag; the date is filled in when the tag
 is cut (see the release process in [`docs/contributing.md`](docs/contributing.md)).
 
+## [Unreleased]
+
+### Fixed
+
+- The generated Docker stack is now bootable and initialized out of the box
+  ([#16](https://github.com/CasualEngineerZombie/modern-django-starter/issues/16),
+  PR [#49](https://github.com/CasualEngineerZombie/modern-django-starter/pull/49)):
+  a new `entrypoint.sh` makes `docker compose up` wait for dependencies, apply
+  migrations, and collect static files before starting the dev server; the
+  `web` service gained a healthcheck; the `web`/`celery`/`celery-beat` services
+  run as the host user so bind-mount files stay owned by the developer; the
+  image now builds reliably (Pillow compiles from source on
+  `python:3.14-slim`, so the Dockerfile carries its zlib/JPEG dev headers, and
+  the build-time `collectstatic` runs under the production settings module
+  since the image doesn't install dev-only apps such as `debug_toolbar`);
+  the compose dev stack builds with `requirements/development.txt` (via a
+  Dockerfile `REQUIREMENTS` build arg, so plain `docker build` stays a slim
+  production image) because the development settings module needs the dev-only
+  apps at runtime;
+  and the README/CLI/docs no longer tell users to run a manual `migrate` step.
+  Production startup (plain `gunicorn`, no auto-migrate) is now documented.
+
 ## [0.3.9] - Unreleased
 
 ### Added

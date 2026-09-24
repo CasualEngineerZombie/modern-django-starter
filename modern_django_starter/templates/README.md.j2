@@ -49,22 +49,33 @@ A modern Django project generated with [modern-django-starter](https://github.co
 
 2. **Build and run**:
    ```bash
-   docker-compose up -d
+   docker compose up -d --build
    ```
+   On startup the `web` container waits for its dependencies, applies
+   migrations, collects static files, then starts the development server — a
+   fresh `docker compose up` is fully initialized and served on
+   http://localhost:8000.
 
-3. **Run migrations**:
+3. **Create superuser** (optional):
    ```bash
-   docker-compose exec web python manage.py migrate
+   docker compose exec web python manage.py createsuperuser
    ```
 
-4. **Create superuser**:
-   ```bash
-   docker-compose exec web python manage.py createsuperuser
-   ```
-
-5. **Visit your application**:
+4. **Visit your application**:
    - Main site: http://localhost:8000
    - Admin panel: http://localhost:8000/admin
+
+> **How startup works.** `web`, `celery`, and `celery-beat` run `entrypoint.sh`,
+> which waits for the database and Redis broker (when enabled) before starting.
+> The `web` service also runs `migrate --noinput` and `collectstatic --noinput`
+> so initialization happens exactly once per stack startup; workers only wait.
+> Set `SKIP_INIT=1` to bypass initialization (e.g. in a one-off container).
+>
+> **Production differs.** The shipped `Dockerfile` image does **not**
+> auto-migrate — its default command is `gunicorn`. Apply migrations as an
+> explicit release step (`docker compose run --rm web python manage.py migrate`)
+> before rolling out new containers. See the generated `docs/deployment`
+> guidance for details.
 
 ### Manual Setup
 {% else %}

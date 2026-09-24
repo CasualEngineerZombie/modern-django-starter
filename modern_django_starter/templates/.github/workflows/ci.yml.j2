@@ -110,5 +110,6 @@ jobs:
 
     - name: Test Docker image
       run: |
-        docker run --rm {{ project_name }}:latest python manage.py check
+        docker run --rm -e DJANGO_SETTINGS_MODULE={{ project_name }}.settings.production \
+          {{ project_name }}:latest python manage.py check
   {% endif %}

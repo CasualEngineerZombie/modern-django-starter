@@ -683,13 +683,23 @@ urlpatterns = [
 
         # Dockerfile
         dockerfile_template = self.env.get_template('Dockerfile.j2')
-        content = dockerfile_template.render(config=self.config)
+        content = dockerfile_template.render(project_name=self.project_name, config=self.config)
         (self.project_dir / 'Dockerfile').write_text(content, encoding='utf-8')
 
         # docker-compose.yml
         docker_compose_template = self.env.get_template('docker-compose.yml.j2')
         content = docker_compose_template.render(project_name=self.project_name, config=self.config)
         (self.project_dir / 'docker-compose.yml').write_text(content, encoding='utf-8')
+
+        # entrypoint.sh — the development stack's initializer (issue #16): the
+        # compose services run it to wait for dependencies, migrate, collect
+        # static files, and then start the application. Written with explicit
+        # LF line endings because /bin/sh rejects CRLF scripts and the default
+        # text write would translate newlines on Windows hosts.
+        entrypoint_template = self.env.get_template('entrypoint.sh.j2')
+        content = entrypoint_template.render(project_name=self.project_name, config=self.config)
+        entrypoint_path = self.project_dir / 'entrypoint.sh'
+        entrypoint_path.write_text(content, encoding='utf-8', newline='\n')
 
         # .dockerignore
         dockerignore_template = self.env.get_template('dockerignore.j2')

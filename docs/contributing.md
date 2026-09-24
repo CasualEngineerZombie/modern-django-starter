@@ -71,6 +71,12 @@ The matrix lives at the top of `test_generated_projects_e2e.py`:
   boots against a real database: it starts the generated project's own `db`
   service with `docker compose up -d db`, then runs migrate and the generated
   test suite against it (requires Docker).
+- `DockerComposeStackIntegrationTests` — a full-stack boot (issue
+  [#16](https://github.com/CasualEngineerZombie/modern-django-starter/issues/16)): it
+  runs `docker compose up -d --build web` on a docker+PostgreSQL configuration,
+  waits for the `web` healthcheck to report `healthy`, and asserts the
+  entrypoint applied migrations and static files. This proves a fresh
+  `docker compose up` produces a bootable, initialized project.
 
 When you add a configuration option to the generator, add (or extend) a matrix
 entry here so the new combination is proven to boot, not just render.

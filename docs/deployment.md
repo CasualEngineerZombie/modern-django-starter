@@ -33,15 +33,27 @@ documentation site itself is published.
 
 The generated `Dockerfile` and `docker-compose.yml` are production-capable.
 
+Development startup is fully automatic (see [Integrations](integrations.md)):
+`docker compose up` waits for dependencies, applies migrations, and collects
+static files before the server starts. **Production differs** — the image's
+default command is `gunicorn` and it does **not** auto-migrate. Apply
+migrations once as an explicit release step before rolling out new containers:
+
 ```bash
-# Build and run
+# Build and run (development)
 docker compose up -d --build
 
+# One-shot migration against the release database
+docker compose run --rm web python manage.py migrate
+docker compose run --rm web python manage.py collectstatic --noinput
+
 # First time only
-docker compose exec web python manage.py migrate
-docker compose exec web python manage.py collectstatic --noinput
 docker compose exec web python manage.py createsuperuser
 ```
+
+> `docker compose run` one-offs go through `entrypoint.sh`, which re-applies
+> migrations and static setup (idempotent) before the command. Use
+> `docker compose exec` against a running stack to skip that.
 
 Then put a reverse proxy (nginx, Caddy, Traefik, or your platform's TLS terminator) in
 front of `web` and terminate TLS for your domain.
