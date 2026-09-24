@@ -5,7 +5,7 @@ from click.testing import CliRunner
 
 from modern_django_starter import __version__
 from modern_django_starter.cli import cli
-from modern_django_starter.logo import INFO_BOX, MDS_v2
+from modern_django_starter.logo import INFO_BOX, MDS_v3
 
 
 class TestCLIBanner(unittest.TestCase):
@@ -22,26 +22,26 @@ class TestCLIBanner(unittest.TestCase):
         # Click >= 8.2 raises NoArgsIsHelpError (exit 2) for a bare group
         # invocation; older versions exit 0. Either way the help/banner shows.
         self.assertIn(result.exit_code, (0, 2))
-        self.assertIn(MDS_v2.strip(), result.output)
+        self.assertIn(MDS_v3.strip(), result.output)
         self.assertIn(INFO_BOX.strip(), result.output)
 
     def test_help_shows_logo(self):
         result = self.runner.invoke(cli, ['--help'])
         self.assertEqual(result.exit_code, 0)
-        self.assertIn(MDS_v2.strip(), result.output)
+        self.assertIn(MDS_v3.strip(), result.output)
         self.assertIn(INFO_BOX.strip(), result.output)
 
     def test_version_shows_logo(self):
         result = self.runner.invoke(cli, ['--version'])
         self.assertEqual(result.exit_code, 0)
-        self.assertIn(MDS_v2.strip(), result.output)
+        self.assertIn(MDS_v3.strip(), result.output)
         self.assertIn(INFO_BOX.strip(), result.output)
         self.assertIn('version', result.output)
 
     def test_create_help_shows_logo(self):
         result = self.runner.invoke(cli, ['create', '--help'])
         self.assertEqual(result.exit_code, 0)
-        self.assertIn(MDS_v2.strip(), result.output)
+        self.assertIn(MDS_v3.strip(), result.output)
         self.assertIn(INFO_BOX.strip(), result.output)
 
     def test_create_command_shows_logo(self):
@@ -55,7 +55,7 @@ class TestCLIBanner(unittest.TestCase):
             result = self.runner.invoke(cli, ['create', 'my_project'])
 
         self.assertEqual(result.exit_code, 0)
-        self.assertIn(MDS_v2.strip(), result.output)
+        self.assertIn(MDS_v3.strip(), result.output)
         self.assertIn(INFO_BOX.strip(), result.output)
 
 
