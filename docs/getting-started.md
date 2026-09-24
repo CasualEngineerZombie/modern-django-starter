@@ -58,7 +58,7 @@ Here's what an interactive run looks like:
   ┌─────────────────────────────────────────────────────────────────────────┐
   │  Modern Django Starter                                                  │
   ├─────────────────────────────────────────────────────────────────────────┤
-  │  Version  │  v1.0.0                                                     │
+  │  Version  │  v0.3.0                                                     │
   │  Author   │  Rian Barriga                                               │
   │  License  │  MIT                                                        │
   │  GitHub   │  CasualEngineerZombie/modern-django-starter                 │

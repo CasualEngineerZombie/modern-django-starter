@@ -3,6 +3,7 @@ from unittest.mock import patch
 
 from click.testing import CliRunner
 
+from modern_django_starter import __version__
 from modern_django_starter.cli import cli
 from modern_django_starter.logo import INFO_BOX, MDS_v2
 
@@ -12,6 +13,9 @@ class TestCLIBanner(unittest.TestCase):
 
     def setUp(self):
         self.runner = CliRunner()
+
+    def test_info_box_version_matches_package(self):
+        self.assertIn(f'v{__version__}', INFO_BOX)
 
     def test_no_args_shows_logo(self):
         result = self.runner.invoke(cli, [])

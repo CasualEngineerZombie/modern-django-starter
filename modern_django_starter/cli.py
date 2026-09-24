@@ -226,8 +226,28 @@ def create(project_name, output_dir, api_only):
         sys.exit(1)
 
 
+def _configure_utf8_stdio() -> None:
+    """Force UTF-8 on stdout/stderr so Unicode glyphs survive non-UTF-8 codepages.
+
+    On Windows the default ``cp1252`` output encoding cannot encode the logo's
+    block characters or the ``🚀``/``✅`` emoji when stdout is piped (e.g.
+    ``cmd /c ... | more``). Reconfiguring to UTF-8 keeps the CLI from crashing
+    on those Unicode-heavy banners.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, 'reconfigure', None)
+        if reconfigure is None:
+            continue
+        try:
+            reconfigure(encoding='utf-8')
+        except (AttributeError, ValueError, OSError):
+            # Stream is closed, detached, or does not support reconfiguration.
+            pass
+
+
 def main():
     """Main entry point for the CLI."""
+    _configure_utf8_stdio()
     cli()
 
 
