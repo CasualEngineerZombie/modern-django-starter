@@ -20,6 +20,22 @@ MDS_v2 = """
 """
 
 
+MDS_v3 = """
+________       __                                
+\______ \     |__|____    ____    ____   ____    
+ |    |  \    |  \__  \  /    \  / ___\ /  _ \   
+ |    `   \   |  |/ __ \|   |  \/ /_/  >  <_> )  
+/_______  /\__|  (____  /___|  /\___  / \____/   
+        \/\______|    \/     \//_____/           
+  _________ __                 __                
+ /   _____//  |______ ________/  |_  ___________ 
+ \_____  \\   __\__  \\_  __ \   __\/ __ \_  __ \
+ /        \|  |  / __ \|  | \/|  | \  ___/|  | \/
+/_______  /|__| (____  /__|   |__|  \___  >__|   
+        \/           \/                 \/       
+"""
+
+
 def _build_info_box() -> str:
     """Build the metadata panel, pulling the version from ``__version__``."""
     width = 73  # number of box-drawing characters between the corners
@@ -47,7 +63,7 @@ DJANGO_GREEN = '\033[38;5;34m'
 RESET = '\033[0m'
 
 # Full banner: the MDS logo plus the info box, colored Django green.
-LOGO = f'{DJANGO_GREEN}{MDS_v2}{INFO_BOX}{RESET}'
+LOGO = f'{DJANGO_GREEN}{MDS_v3}{INFO_BOX}{RESET}'
 
 
 def print_logo():

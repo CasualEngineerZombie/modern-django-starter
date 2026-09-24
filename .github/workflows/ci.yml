@@ -70,7 +70,7 @@ jobs:
         run: uv run pytest -q
 
   integration:
-    name: Integration (generated API-only project)
+    name: Integration (generated-project E2E matrix)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -84,5 +84,12 @@ jobs:
       - name: Install the project
         run: uv sync --frozen
 
-      - name: Run Django integration test
-        run: RUN_DJANGO_INTEGRATION_TESTS=1 uv run pytest tests/test_api_only_integration.py -q
+      - name: Run generated-project E2E tests
+        env:
+          RUN_DJANGO_INTEGRATION_TESTS: "1"
+        run: |
+          uv run pytest -q \
+            tests/test_api_only_integration.py \
+            tests/test_storage_dependencies.py \
+            tests/test_stripe_webhook_secret.py \
+            tests/test_generated_projects_e2e.py

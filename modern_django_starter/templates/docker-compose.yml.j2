@@ -20,6 +20,7 @@ services:
       - CELERY_BROKER_URL=redis://redis:6379/0
       - CELERY_RESULT_BACKEND=redis://redis:6379/0
       {% endif %}
+    {% if config.use_postgresql or config.use_celery %}
     depends_on:
       {% if config.use_postgresql %}
       db:
@@ -29,13 +30,14 @@ services:
       redis:
         condition: service_healthy
       {% endif %}
+    {% endif %}
     command: python manage.py runserver 0.0.0.0:8000
 
   {% if config.use_postgresql %}
   db:
     image: postgres:{{ config.postgresql_version }}
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres_data:{{ '/var/lib/postgresql' if config.postgresql_version | int >= 18 else '/var/lib/postgresql/data/' }}
     environment:
       POSTGRES_DB: {{ project_name }}
       POSTGRES_USER: postgres

@@ -31,8 +31,8 @@ dj-rest-auth==7.2.0
 # Background tasks
 celery==5.4.0
 redis==5.2.1
-django-celery-beat==2.8.0
-django-celery-results==2.5.1
+# django-celery-beat/django-celery-results are omitted: django-celery-beat's
+# latest release caps at Django<6.1, so it cannot install next to Django 6.1.
 {% endif %}
 
 {% if config.use_sentry %}

@@ -108,7 +108,9 @@ def create(project_name, output_dir, api_only):
         config['use_drf'] = True
         config['use_celery'] = Confirm.ask('Add Celery for background tasks?', default=False)
         config['use_sentry'] = Confirm.ask('Add Sentry error tracking?', default=False)
-        config['use_stripe'] = Confirm.ask('Add Stripe for payments?', default=False)
+        # Stripe payments require the frontend checkout flow, which API-only
+        # projects do not generate; keep the flag off.
+        config['use_stripe'] = False
         config['frontend_pipeline'] = 'none'
         config['ci_tool'] = Prompt.ask(
             'CI tool',

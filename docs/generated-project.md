@@ -67,7 +67,7 @@ my_project/
   `ACCOUNT_EMAIL_VERIFICATION = 'mandatory'`
 - **DRF** with Session + Token authentication, `IsAuthenticated` by default,
   page-based pagination (`page_size = 20`), and CORS support
-- **Celery** with a Redis broker and django-celery-beat / django-celery-results
+- **Celery** with a Redis broker and result backend
 - **Sentry** initialized with the Django (and Celery, if enabled) integrations
 - **dj-stripe** with an `Order`/`OrderItem` model, checkout sessions, and webhooks
 - **django-storages** backends when a cloud storage provider is selected

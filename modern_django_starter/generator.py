@@ -541,6 +541,14 @@ urlpatterns = [
                     base_reqs.append('google-cloud-storage')
                 elif storage_provider == 'azure':
                     base_reqs.append('azure-storage-blob')
+            # The shared settings templates emit Celery/Sentry configuration
+            # for API-only projects too, so those packages must be installed
+            # or ``manage.py check`` fails on the first import.
+            if self.config.get('use_celery'):
+                base_reqs.append('celery')
+                base_reqs.append('redis')
+            if self.config.get('use_sentry'):
+                base_reqs.append('sentry-sdk')
             (requirements_dir / 'base.txt').write_text(
                 '\n'.join(base_reqs) + '\n', encoding='utf-8'
             )
