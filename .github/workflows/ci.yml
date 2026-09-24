@@ -81,12 +81,13 @@ jobs:
           KUMO_HOST: 0.0.0.0
           KUMO_PORT: 4566
           KUMO_LOG_LEVEL: info
-        # No explicit ports mapping: the image EXPOSEs 4566, so GitHub-hosted
-        # runners reach it on localhost:4566, and act never tries to bind host
-        # ports for the service (which would collide with the compose kumo
-        # that local act runs reach on localhost instead, see ci-local.sh).
-        # No healthcheck options either: act does not wait for service
-        # health, so the tests poll the emulator themselves instead.
+        ports:
+          - 4566:4566
+        # Explicit ports mapping required for GitHub-hosted runners to reach
+        # the service container on localhost:4566. act runs use the compose
+        # kumo from docker-compose.act.yml which also maps 4566:4566.
+        # No healthcheck options: act does not wait for service health, so the
+        # tests poll the emulator themselves instead.
     steps:
       - uses: actions/checkout@v7
 
