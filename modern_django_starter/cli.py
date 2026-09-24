@@ -9,19 +9,38 @@ from rich.console import Console
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
+from . import __version__
 from .generator import ProjectGenerator
+from .logo import LOGO
 
 console = Console()
 
 
-@click.group()
-@click.version_option()
+class MDSCommand(click.Command):
+    """A click command whose help output is preceded by the MDS banner."""
+
+    def get_help(self, ctx):
+        return f'{LOGO}\n\n{super().get_help(ctx)}'
+
+
+class MDSGroup(click.Group):
+    """A click group whose help output is preceded by the MDS banner."""
+
+    def get_help(self, ctx):
+        return f'{LOGO}\n\n{super().get_help(ctx)}'
+
+
+@click.group(cls=MDSGroup)
+@click.version_option(
+    version=__version__,
+    message=f'{LOGO}\n\n%(prog)s, version %(version)s',
+)
 def cli():
     """Modern Django Starter - Generate Django 6.1 projects with modern features."""
     pass
 
 
-@cli.command()
+@cli.command(cls=MDSCommand)
 @click.argument('project_name', required=False)
 @click.option('--output-dir', '-o', default='.', help='Output directory for the project')
 @click.option(
@@ -32,7 +51,8 @@ def cli():
 )
 def create(project_name, output_dir, api_only):
     """Create a new Django project with modern features or API-only DRF backend."""
-    console.print('[bold green]🚀 Modern Django Starter[/bold green]')
+    print(LOGO)
+    console.print()
     if api_only:
         console.print('Generate Django 6.1 API-only DRF backend (no frontend, no templates)\n')
     else:

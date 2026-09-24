@@ -1,0 +1,59 @@
+import unittest
+from unittest.mock import patch
+
+from click.testing import CliRunner
+
+from modern_django_starter.cli import cli
+from modern_django_starter.logo import INFO_BOX, MDS_v2
+
+
+class TestCLIBanner(unittest.TestCase):
+    """The MDS logo banner should appear on every initial CLI invocation."""
+
+    def setUp(self):
+        self.runner = CliRunner()
+
+    def test_no_args_shows_logo(self):
+        result = self.runner.invoke(cli, [])
+        # Click >= 8.2 raises NoArgsIsHelpError (exit 2) for a bare group
+        # invocation; older versions exit 0. Either way the help/banner shows.
+        self.assertIn(result.exit_code, (0, 2))
+        self.assertIn(MDS_v2.strip(), result.output)
+        self.assertIn(INFO_BOX.strip(), result.output)
+
+    def test_help_shows_logo(self):
+        result = self.runner.invoke(cli, ['--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn(MDS_v2.strip(), result.output)
+        self.assertIn(INFO_BOX.strip(), result.output)
+
+    def test_version_shows_logo(self):
+        result = self.runner.invoke(cli, ['--version'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn(MDS_v2.strip(), result.output)
+        self.assertIn(INFO_BOX.strip(), result.output)
+        self.assertIn('version', result.output)
+
+    def test_create_help_shows_logo(self):
+        result = self.runner.invoke(cli, ['create', '--help'])
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn(MDS_v2.strip(), result.output)
+        self.assertIn(INFO_BOX.strip(), result.output)
+
+    def test_create_command_shows_logo(self):
+        # Answer every prompt non-interactively, then decline generation so no
+        # project is written to disk.
+        prompt_answers = ['none', 'local', 'none', 'vite', 'none']
+        with (
+            patch('modern_django_starter.cli.Confirm.ask', return_value=False),
+            patch('modern_django_starter.cli.Prompt.ask', side_effect=prompt_answers),
+        ):
+            result = self.runner.invoke(cli, ['create', 'my_project'])
+
+        self.assertEqual(result.exit_code, 0)
+        self.assertIn(MDS_v2.strip(), result.output)
+        self.assertIn(INFO_BOX.strip(), result.output)
+
+
+if __name__ == '__main__':
+    unittest.main()
