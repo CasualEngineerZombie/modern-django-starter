@@ -1,30 +1,30 @@
 """Project generator for modern Django projects."""
 
 from pathlib import Path
+
 from jinja2 import Environment, FileSystemLoader
 from rich.console import Console
 
 console = Console()
 
+
 class ProjectGenerator:
     """Generates Django projects with modern features."""
-    
+
     def __init__(self, project_name, output_dir, config):
         self.project_name = project_name
         self.output_dir = Path(output_dir)
         self.config = config
         self.project_dir = self.output_dir / project_name
-        
+
         # Get template directory
-        self.template_dir = Path(__file__).parent / "templates"
-        
+        self.template_dir = Path(__file__).parent / 'templates'
+
         # Jinja2 environment
         self.env = Environment(
-            loader=FileSystemLoader(str(self.template_dir)),
-            trim_blocks=True,
-            lstrip_blocks=True
+            loader=FileSystemLoader(str(self.template_dir)), trim_blocks=True, lstrip_blocks=True
         )
-    
+
     def generate(self):
         """Generate the project."""
         console.print(f"[bold blue]🔨 Generating project '{self.project_name}'...[/bold blue]")
@@ -40,24 +40,24 @@ class ProjectGenerator:
             self._generate_static_files()
         self._generate_docker_files()
         self._generate_ci_files()
-        console.print("[green]✅ Project structure generated successfully![/green]")
-    
+        console.print('[green]✅ Project structure generated successfully![/green]')
+
     def _generate_django_project(self):
         """Generate Django project structure."""
-        console.print("📦 Creating Django project structure...")
+        console.print('📦 Creating Django project structure...')
         # Create manage.py
-        manage_py = self.env.get_template("manage.py.j2")
+        manage_py = self.env.get_template('manage.py.j2')
         content = manage_py.render(project_name=self.project_name)
-        (self.project_dir / "manage.py").write_text(content, encoding='utf-8')
+        (self.project_dir / 'manage.py').write_text(content, encoding='utf-8')
         # Create project package
         project_package = self.project_dir / self.project_name
         project_package.mkdir(exist_ok=True)
         # Create __init__.py
-        (project_package / "__init__.py").write_text("", encoding='utf-8')
+        (project_package / '__init__.py').write_text('', encoding='utf-8')
         # Create settings
-        settings_dir = project_package / "settings"
+        settings_dir = project_package / 'settings'
         settings_dir.mkdir(exist_ok=True)
-        (settings_dir / "__init__.py").write_text("", encoding='utf-8')
+        (settings_dir / '__init__.py').write_text('', encoding='utf-8')
         if self.config.get('api_only'):
             # Minimal DRF-only settings
             base_settings = f'''"""
@@ -150,19 +150,16 @@ CORS_ALLOW_ALL_ORIGINS = True
 EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
 DEFAULT_FROM_EMAIL = 'noreply@{self.project_name}.com'
 '''
-            for fname in ["base.py", "development.py", "production.py"]:
+            for fname in ['base.py', 'development.py', 'production.py']:
                 (settings_dir / fname).write_text(base_settings, encoding='utf-8')
         else:
             # Generate settings files
-            for settings_file in ["base.py", "development.py", "production.py"]:
-                template = self.env.get_template(f"settings/{settings_file}.j2")
-                content = template.render(
-                    project_name=self.project_name,
-                    config=self.config
-                )
+            for settings_file in ['base.py', 'development.py', 'production.py']:
+                template = self.env.get_template(f'settings/{settings_file}.j2')
+                content = template.render(project_name=self.project_name, config=self.config)
                 (settings_dir / settings_file).write_text(content, encoding='utf-8')
         # Create urls.py
-        urls_path = project_package / "urls.py"
+        urls_path = project_package / 'urls.py'
         if self.config.get('api_only'):
             urls_content = f'''"""
 Minimal DRF-only urls for {self.project_name}
@@ -188,43 +185,43 @@ urlpatterns = [
 '''
             urls_path.write_text(urls_content, encoding='utf-8')
         else:
-            urls_template = self.env.get_template("urls.py.j2")
+            urls_template = self.env.get_template('urls.py.j2')
             content = urls_template.render(config=self.config)
             urls_path.write_text(content, encoding='utf-8')
         # Create wsgi.py and asgi.py
-        wsgi_template = self.env.get_template("wsgi.py.j2")
+        wsgi_template = self.env.get_template('wsgi.py.j2')
         content = wsgi_template.render(project_name=self.project_name)
-        (project_package / "wsgi.py").write_text(content, encoding='utf-8')
+        (project_package / 'wsgi.py').write_text(content, encoding='utf-8')
         if self.config.get('use_async'):
-            asgi_template = self.env.get_template("asgi.py.j2")
+            asgi_template = self.env.get_template('asgi.py.j2')
             content = asgi_template.render(project_name=self.project_name)
-            (project_package / "asgi.py").write_text(content, encoding='utf-8')
-    
+            (project_package / 'asgi.py').write_text(content, encoding='utf-8')
+
     def _generate_django_apps(self):
         """Generate Django applications."""
-        console.print("🏗️  Creating Django applications...")
-        apps_dir = self.project_dir / "apps"
+        console.print('🏗️  Creating Django applications...')
+        apps_dir = self.project_dir / 'apps'
         apps_dir.mkdir(exist_ok=True)
-        (apps_dir / "__init__.py").write_text("", encoding='utf-8')
+        (apps_dir / '__init__.py').write_text('', encoding='utf-8')
         if self.config.get('api_only'):
             # Only API app for api_only
-            self._create_django_app(apps_dir, "api")
+            self._create_django_app(apps_dir, 'api')
         else:
-            self._create_django_app(apps_dir, "core")
-            self._create_django_app(apps_dir, "accounts")
+            self._create_django_app(apps_dir, 'core')
+            self._create_django_app(apps_dir, 'accounts')
             if self.config.get('use_drf'):
-                self._create_django_app(apps_dir, "api")
+                self._create_django_app(apps_dir, 'api')
             if self.config.get('use_stripe'):
                 self._create_payments_app(apps_dir)
-    
+
     def _create_django_app(self, apps_dir, app_name):
         """Create a Django app with basic structure."""
         app_dir = apps_dir / app_name
         app_dir.mkdir(exist_ok=True)
-        
+
         # Create __init__.py
-        (app_dir / "__init__.py").write_text("", encoding='utf-8')
-        
+        (app_dir / '__init__.py').write_text('', encoding='utf-8')
+
         # Create apps.py
         apps_py_content = f"""from django.apps import AppConfig
 
@@ -233,13 +230,15 @@ class {app_name.title()}Config(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
     name = 'apps.{app_name}'
 """
-        (app_dir / "apps.py").write_text(apps_py_content, encoding='utf-8')
-        
+        (app_dir / 'apps.py').write_text(apps_py_content, encoding='utf-8')
+
         # Create models.py
-        (app_dir / "models.py").write_text("from django.db import models\n\n# Create your models here.\n", encoding='utf-8')
-        
+        (app_dir / 'models.py').write_text(
+            'from django.db import models\n\n# Create your models here.\n', encoding='utf-8'
+        )
+
         # Create views.py
-        if app_name == "core":
+        if app_name == 'core':
             views_content = """from django.shortcuts import render
 from django.views.generic import TemplateView
 from django.http import JsonResponse
@@ -255,7 +254,7 @@ def time_view(request):
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     return JsonResponse({'time': current_time})
 """
-        elif app_name == "api" and self.config.get('use_drf'):
+        elif app_name == 'api' and self.config.get('use_drf'):
             views_content = """from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
@@ -267,13 +266,15 @@ def health_check(request):
     return Response({'status': 'healthy'}, status=status.HTTP_200_OK)
 """
         else:
-            views_content = "from django.shortcuts import render\n\n# Create your views here.\n"
-        
-        (app_dir / "views.py").write_text(views_content, encoding='utf-8')
-        
+            views_content = 'from django.shortcuts import render\n\n# Create your views here.\n'
+
+        (app_dir / 'views.py').write_text(views_content, encoding='utf-8')
+
         # Create admin.py
-        (app_dir / "admin.py").write_text("from django.contrib import admin\n\n# Register your models here.\n", encoding='utf-8')
-        
+        (app_dir / 'admin.py').write_text(
+            'from django.contrib import admin\n\n# Register your models here.\n', encoding='utf-8'
+        )
+
         # Create tests.py
         tests_content = f"""from django.test import TestCase
 
@@ -283,10 +284,10 @@ class {app_name.title()}TestCase(TestCase):
         \"\"\"Placeholder test.        \"\"\"
         self.assertTrue(True)
 """
-        (app_dir / "tests.py").write_text(tests_content, encoding='utf-8')
-        
+        (app_dir / 'tests.py').write_text(tests_content, encoding='utf-8')
+
         # Create urls.py for specific apps
-        if app_name == "core":
+        if app_name == 'core':
             urls_content = """from django.urls import path
 from .views import HomeView, time_view
 
@@ -295,7 +296,7 @@ urlpatterns = [
     path('time/', time_view, name='time'),
 ]
 """
-        elif app_name == "api" and self.config.get('use_drf'):
+        elif app_name == 'api' and self.config.get('use_drf'):
             urls_content = """from django.urls import path
 from .views import health_check
 
@@ -310,16 +311,16 @@ urlpatterns = [
     # Add your URL patterns here
 ]
 """
-        (app_dir / "urls.py").write_text(urls_content, encoding='utf-8')
-    
+        (app_dir / 'urls.py').write_text(urls_content, encoding='utf-8')
+
     def _create_payments_app(self, apps_dir):
         """Create a payments app with Stripe integration."""
-        app_dir = apps_dir / "payments"
+        app_dir = apps_dir / 'payments'
         app_dir.mkdir(exist_ok=True)
-        
+
         # Create __init__.py
-        (app_dir / "__init__.py").write_text("", encoding='utf-8')
-        
+        (app_dir / '__init__.py').write_text('', encoding='utf-8')
+
         # Create apps.py
         apps_py_content = """from django.apps import AppConfig
 
@@ -331,8 +332,8 @@ class PaymentsConfig(AppConfig):
     def ready(self):
         import apps.payments.signals
 """
-        (app_dir / "apps.py").write_text(apps_py_content, encoding='utf-8')
-        
+        (app_dir / 'apps.py').write_text(apps_py_content, encoding='utf-8')
+
         # Create models.py
         models_content = """from django.db import models
 from django.contrib.auth.models import User
@@ -368,8 +369,8 @@ class OrderItem(models.Model):
     def total_price(self):
         return self.price * self.quantity
 """
-        (app_dir / "models.py").write_text(models_content, encoding='utf-8')
-        
+        (app_dir / 'models.py').write_text(models_content, encoding='utf-8')
+
         # Create views.py
         views_content = """from django.shortcuts import render, redirect
 from django.contrib.auth.decorators import login_required
@@ -514,8 +515,8 @@ class OrderListView(ListView):
     def get_queryset(self):
         return Order.objects.filter(user=self.request.user)
 """
-        (app_dir / "views.py").write_text(views_content, encoding='utf-8')
-        
+        (app_dir / 'views.py').write_text(views_content, encoding='utf-8')
+
         # Create admin.py
         admin_content = """from django.contrib import admin
 from .models import Order, OrderItem
@@ -541,8 +542,8 @@ class OrderItemAdmin(admin.ModelAdmin):
     list_filter = ['order__created_at']
     search_fields = ['name', 'order__user__email']
 """
-        (app_dir / "admin.py").write_text(admin_content, encoding='utf-8')
-        
+        (app_dir / 'admin.py').write_text(admin_content, encoding='utf-8')
+
         # Create signals.py
         signals_content = """from django.db.models.signals import post_save
 from django.dispatch import receiver
@@ -556,8 +557,8 @@ def create_stripe_customer(sender, instance, created, **kwargs):
     if created:
         Customer.get_or_create(subscriber=instance)
 """
-        (app_dir / "signals.py").write_text(signals_content, encoding='utf-8')
-        
+        (app_dir / 'signals.py').write_text(signals_content, encoding='utf-8')
+
         # Create tests.py
         tests_content = """from django.test import TestCase
 from django.contrib.auth.models import User
@@ -601,8 +602,8 @@ class PaymentsTestCase(TestCase):
         self.assertEqual(item.total_price, 29.98)
         self.assertEqual(order.items.count(), 1)
 """
-        (app_dir / "tests.py").write_text(tests_content, encoding='utf-8')
-        
+        (app_dir / 'tests.py').write_text(tests_content, encoding='utf-8')
+
         # Create urls.py
         urls_content = """from django.urls import path
 from .views import (
@@ -618,190 +619,183 @@ urlpatterns = [
     path('webhook/', StripeWebhookView.as_view(), name='stripe_webhook'),
 ]
 """
-        (app_dir / "urls.py").write_text(urls_content, encoding='utf-8')
-    
+        (app_dir / 'urls.py').write_text(urls_content, encoding='utf-8')
+
     def _generate_requirements(self):
         """Generate requirements files."""
-        console.print("📋 Creating requirements files...")
-        requirements_dir = self.project_dir / "requirements"
+        console.print('📋 Creating requirements files...')
+        requirements_dir = self.project_dir / 'requirements'
         requirements_dir.mkdir(exist_ok=True)
         if self.config.get('api_only'):
             # Minimal DRF API requirements
             base_reqs = [
-                "Django>=5.0",
-                "djangorestframework",
-                "django-cors-headers",
-                "drf-spectacular",
-                "djangorestframework-simplejwt",
-                "dj-rest-auth",
-                "django-allauth",
-                "psycopg2-binary"
+                'Django>=5.0',
+                'djangorestframework',
+                'django-cors-headers',
+                'drf-spectacular',
+                'djangorestframework-simplejwt',
+                'dj-rest-auth',
+                'django-allauth',
+                'psycopg2-binary',
             ]
-            (requirements_dir / "base.txt").write_text("\n".join(base_reqs) + "\n", encoding='utf-8')
-            (requirements_dir / "development.txt").write_text("-r base.txt\n", encoding='utf-8')
-            (requirements_dir / "production.txt").write_text("-r base.txt\n", encoding='utf-8')
-            (self.project_dir / "requirements.txt").write_text("-r requirements/development.txt\n", encoding='utf-8')
+            (requirements_dir / 'base.txt').write_text(
+                '\n'.join(base_reqs) + '\n', encoding='utf-8'
+            )
+            (requirements_dir / 'development.txt').write_text('-r base.txt\n', encoding='utf-8')
+            (requirements_dir / 'production.txt').write_text('-r base.txt\n', encoding='utf-8')
+            (self.project_dir / 'requirements.txt').write_text(
+                '-r requirements/development.txt\n', encoding='utf-8'
+            )
         else:
             # Base requirements
-            requirements_template = self.env.get_template("requirements/base.txt.j2")
+            requirements_template = self.env.get_template('requirements/base.txt.j2')
             content = requirements_template.render(config=self.config)
-            (requirements_dir / "base.txt").write_text(content, encoding='utf-8')
-            
+            (requirements_dir / 'base.txt').write_text(content, encoding='utf-8')
+
             # Development requirements
-            dev_requirements_template = self.env.get_template("requirements/development.txt.j2")
+            dev_requirements_template = self.env.get_template('requirements/development.txt.j2')
             content = dev_requirements_template.render(config=self.config)
-            (requirements_dir / "development.txt").write_text(content, encoding='utf-8')
-            
+            (requirements_dir / 'development.txt').write_text(content, encoding='utf-8')
+
             # Production requirements
-            prod_requirements_template = self.env.get_template("requirements/production.txt.j2")
+            prod_requirements_template = self.env.get_template('requirements/production.txt.j2')
             content = prod_requirements_template.render(config=self.config)
-            (requirements_dir / "production.txt").write_text(content, encoding='utf-8')
-            
+            (requirements_dir / 'production.txt').write_text(content, encoding='utf-8')
+
             # Main requirements.txt
-            (self.project_dir / "requirements.txt").write_text("-r requirements/development.txt\n", encoding='utf-8')
-    
+            (self.project_dir / 'requirements.txt').write_text(
+                '-r requirements/development.txt\n', encoding='utf-8'
+            )
+
     def _generate_configuration_files(self):
         """Generate configuration files."""
-        console.print("⚙️  Creating configuration files...")
+        console.print('⚙️  Creating configuration files...')
         # .env.example
-        env_template = self.env.get_template("env.example.j2")
-        content = env_template.render(
-            project_name=self.project_name,
-            config=self.config
-        )
-        (self.project_dir / ".env.example").write_text(content, encoding='utf-8')
+        env_template = self.env.get_template('env.example.j2')
+        content = env_template.render(project_name=self.project_name, config=self.config)
+        (self.project_dir / '.env.example').write_text(content, encoding='utf-8')
         # .gitignore
-        gitignore_template = self.env.get_template("gitignore.j2")
+        gitignore_template = self.env.get_template('gitignore.j2')
         content = gitignore_template.render(config=self.config)
-        (self.project_dir / ".gitignore").write_text(content, encoding='utf-8')
+        (self.project_dir / '.gitignore').write_text(content, encoding='utf-8')
         # README.md
-        readme_template = self.env.get_template("README.md.j2")
-        content = readme_template.render(
-            project_name=self.project_name,
-            config=self.config
-        )
-        (self.project_dir / "README.md").write_text(content, encoding='utf-8')
-    
+        readme_template = self.env.get_template('README.md.j2')
+        content = readme_template.render(project_name=self.project_name, config=self.config)
+        (self.project_dir / 'README.md').write_text(content, encoding='utf-8')
+
     def _generate_templates(self):
         """Generate HTML templates."""
-        console.print("🎨 Creating HTML templates...")
-        
-        templates_dir = self.project_dir / "templates"
+        console.print('🎨 Creating HTML templates...')
+
+        templates_dir = self.project_dir / 'templates'
         templates_dir.mkdir(exist_ok=True)
-        
+
         # Base template
-        base_template = self.env.get_template("templates/base.html.j2")
+        base_template = self.env.get_template('templates/base.html.j2')
         content = base_template.render(config=self.config)
-        (templates_dir / "base.html").write_text(content, encoding='utf-8')
-        
+        (templates_dir / 'base.html').write_text(content, encoding='utf-8')
+
         # Home template
-        home_template = self.env.get_template("templates/home.html.j2")
+        home_template = self.env.get_template('templates/home.html.j2')
         content = home_template.render(config=self.config)
-        (templates_dir / "home.html").write_text(content, encoding='utf-8')
-        
+        (templates_dir / 'home.html').write_text(content, encoding='utf-8')
+
         # Authentication templates if allauth is enabled
         if True:  # Always include auth templates
-            auth_dir = templates_dir / "account"
+            auth_dir = templates_dir / 'account'
             auth_dir.mkdir(exist_ok=True)
-            
-            for template_name in ["login.html", "signup.html", "logout.html"]:
-                template = self.env.get_template(f"templates/account/{template_name}.j2")
+
+            for template_name in ['login.html', 'signup.html', 'logout.html']:
+                template = self.env.get_template(f'templates/account/{template_name}.j2')
                 content = template.render(config=self.config)
                 (auth_dir / template_name).write_text(content, encoding='utf-8')
-        
+
         # Payment templates if Stripe is enabled
         if self.config.get('use_stripe'):
-            payments_dir = templates_dir / "payments"
+            payments_dir = templates_dir / 'payments'
             payments_dir.mkdir(exist_ok=True)
-            
-            for template_name in ["checkout.html", "success.html", "cancel.html", "orders.html"]:
-                template = self.env.get_template(f"templates/payments/{template_name}.j2")
+
+            for template_name in ['checkout.html', 'success.html', 'cancel.html', 'orders.html']:
+                template = self.env.get_template(f'templates/payments/{template_name}.j2')
                 content = template.render(config=self.config)
                 (payments_dir / template_name).write_text(content, encoding='utf-8')
-    
+
     def _generate_static_files(self):
         """Generate static files."""
-        console.print("🎯 Creating static files...")
-        
-        static_dir = self.project_dir / "static"
+        console.print('🎯 Creating static files...')
+
+        static_dir = self.project_dir / 'static'
         static_dir.mkdir(exist_ok=True)
-        
+
         # CSS directory
-        css_dir = static_dir / "css"
+        css_dir = static_dir / 'css'
         css_dir.mkdir(exist_ok=True)
-        
+
         # JavaScript directory
-        js_dir = static_dir / "js"
+        js_dir = static_dir / 'js'
         js_dir.mkdir(exist_ok=True)
-        
+
         # Images directory
-        img_dir = static_dir / "img"
+        img_dir = static_dir / 'img'
         img_dir.mkdir(exist_ok=True)
-        
+
         # Generate main CSS file
-        css_template = self.env.get_template("static/css/main.css.j2")
+        css_template = self.env.get_template('static/css/main.css.j2')
         content = css_template.render(config=self.config)
-        (css_dir / "main.css").write_text(content, encoding='utf-8')
-        
+        (css_dir / 'main.css').write_text(content, encoding='utf-8')
+
         # Generate main JS file
-        js_template = self.env.get_template("static/js/main.js.j2")
+        js_template = self.env.get_template('static/js/main.js.j2')
         content = js_template.render(config=self.config)
-        (js_dir / "main.js").write_text(content, encoding='utf-8')
-        
+        (js_dir / 'main.js').write_text(content, encoding='utf-8')
+
         # Generate package.json if frontend pipeline is used
         if self.config.get('frontend_pipeline') != 'none':
-            package_json_template = self.env.get_template("package.json.j2")
+            package_json_template = self.env.get_template('package.json.j2')
             content = package_json_template.render(
-                project_name=self.project_name,
-                config=self.config
+                project_name=self.project_name, config=self.config
             )
-            (self.project_dir / "package.json").write_text(content, encoding='utf-8')
-            
+            (self.project_dir / 'package.json').write_text(content, encoding='utf-8')
+
             # Generate build configuration
             if self.config.get('frontend_pipeline') == 'vite':
-                vite_config_template = self.env.get_template("vite.config.js.j2")
+                vite_config_template = self.env.get_template('vite.config.js.j2')
                 content = vite_config_template.render(config=self.config)
-                (self.project_dir / "vite.config.js").write_text(content, encoding='utf-8')
-    
+                (self.project_dir / 'vite.config.js').write_text(content, encoding='utf-8')
+
     def _generate_docker_files(self):
         """Generate Docker files."""
         if not self.config.get('use_docker'):
             return
-        
-        console.print("🐳 Creating Docker files...")
-        
+
+        console.print('🐳 Creating Docker files...')
+
         # Dockerfile
-        dockerfile_template = self.env.get_template("Dockerfile.j2")
+        dockerfile_template = self.env.get_template('Dockerfile.j2')
         content = dockerfile_template.render(config=self.config)
-        (self.project_dir / "Dockerfile").write_text(content, encoding='utf-8')
-        
+        (self.project_dir / 'Dockerfile').write_text(content, encoding='utf-8')
+
         # docker-compose.yml
-        docker_compose_template = self.env.get_template("docker-compose.yml.j2")
-        content = docker_compose_template.render(
-            project_name=self.project_name,
-            config=self.config
-        )
-        (self.project_dir / "docker-compose.yml").write_text(content, encoding='utf-8')
-        
+        docker_compose_template = self.env.get_template('docker-compose.yml.j2')
+        content = docker_compose_template.render(project_name=self.project_name, config=self.config)
+        (self.project_dir / 'docker-compose.yml').write_text(content, encoding='utf-8')
+
         # .dockerignore
-        dockerignore_template = self.env.get_template("dockerignore.j2")
+        dockerignore_template = self.env.get_template('dockerignore.j2')
         content = dockerignore_template.render(config=self.config)
-        (self.project_dir / ".dockerignore").write_text(content, encoding='utf-8')
-    
+        (self.project_dir / '.dockerignore').write_text(content, encoding='utf-8')
+
     def _generate_ci_files(self):
         """Generate CI configuration files."""
         if self.config.get('ci_tool') == 'none':
             return
-        
-        console.print("🔄 Creating CI configuration...")
-        
+
+        console.print('🔄 Creating CI configuration...')
+
         if self.config.get('ci_tool') == 'github-actions':
-            github_dir = self.project_dir / ".github" / "workflows"
+            github_dir = self.project_dir / '.github' / 'workflows'
             github_dir.mkdir(parents=True, exist_ok=True)
-            
-            ci_template = self.env.get_template(".github/workflows/ci.yml.j2")
-            content = ci_template.render(
-                project_name=self.project_name,
-                config=self.config
-            )
-            (github_dir / "ci.yml").write_text(content, encoding='utf-8')
+
+            ci_template = self.env.get_template('.github/workflows/ci.yml.j2')
+            content = ci_template.render(project_name=self.project_name, config=self.config)
+            (github_dir / 'ci.yml').write_text(content, encoding='utf-8')

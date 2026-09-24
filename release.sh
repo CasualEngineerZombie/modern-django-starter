@@ -14,22 +14,22 @@ echo "🚀 Building modern-django-starter package..."
 rm -rf dist/ build/ *.egg-info/
 
 # Build the package
-python -m build
+uv build
 
 # Check the package
 echo "🔍 Checking package..."
-twine check dist/*
+uvx twine check dist/*
 
 if [ "$ENV" = "test" ]; then
     echo "📦 Uploading to Test PyPI..."
-    twine upload --repository testpypi dist/*
+    uvx twine upload --repository testpypi dist/*
     echo "✅ Upload complete! Test with:"
-    echo "pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ modern-django-starter"
+    echo "uv tool install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ modern-django-starter"
 elif [ "$ENV" = "prod" ]; then
     echo "📦 Uploading to Production PyPI..."
-    twine upload dist/*
+    uvx twine upload dist/*
     echo "✅ Upload complete! Install with:"
-    echo "pip install modern-django-starter"
+    echo "uv tool install modern-django-starter"
 else
     echo "❌ Invalid environment. Use 'test' or 'prod'"
     exit 1

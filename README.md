@@ -12,6 +12,10 @@ A CLI tool for generating modern Django 6.1 projects with HTMX, AlpineJS, and mo
 Install from PyPI:
 
 ```bash
+# with uv (recommended)
+uv tool install modern-django-starter
+
+# or with pip
 pip install modern-django-starter
 ```
 
@@ -70,7 +74,7 @@ modern-django-starter create my_api_project --api-only
 ## Prerequisites
 
 - Python 3.12+
-- pip
+- [uv](https://docs.astral.sh/uv/) (recommended) or pip
 
 Optional:
 - Node.js and npm (for frontend pipelines)
@@ -86,9 +90,17 @@ If you want to contribute or install from source:
    cd modern-django-starter
    ```
 
-2. Install in development mode:
+2. Install dependencies in development mode:
    ```bash
-   pip install -e .
+   uv sync
+   ```
+
+3. Run checks locally (same checks as CI):
+   ```bash
+   uv run ruff check .
+   uv run ruff format --check .
+   uv run mypy
+   uv run pytest
    ```
 
 ## Usage

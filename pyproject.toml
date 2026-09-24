@@ -32,6 +32,13 @@ dependencies = [
     "rich>=13.0.0"
 ]
 
+[dependency-groups]
+dev = [
+    "mypy>=1.17,<2",
+    "pytest>=8.0,<9",
+    "ruff>=0.13,<1",
+]
+
 [project.urls]
 Homepage = "https://github.com/CasualEngineerZombie/modern-django-starter"
 Repository = "https://github.com/CasualEngineerZombie/modern-django-starter"
@@ -46,3 +53,22 @@ include = ["modern_django_starter*"]
 
 [tool.setuptools.package-data]
 modern_django_starter = ["templates/**/*"]
+
+[tool.ruff]
+target-version = "py312"
+line-length = 100
+exclude = ["modern_django_starter/templates"]
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B"]
+ignore = ["E501"]
+
+[tool.ruff.format]
+quote-style = "single"
+
+[tool.mypy]
+python_version = "3.12"
+files = ["modern_django_starter"]
+ignore_missing_imports = true
+check_untyped_defs = true
+warn_unused_ignores = true
