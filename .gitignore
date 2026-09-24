@@ -132,4 +132,4 @@ Thumbs.db
 examples/
 PYPI-release.md
 .*.env
-*.env.*
+*.env
