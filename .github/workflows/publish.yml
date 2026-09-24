@@ -58,21 +58,16 @@ jobs:
       - name: Validate package
         run: uvx twine check dist/*
 
-      # PyPI publishing supports two authentication methods:
-      #   1. An API token stored in the PYPI_API_TOKEN repository secret, or
-      #   2. Trusted publishing (OIDC) - recommended. Add a pending publisher
-      #      at https://pypi.org/manage/account/publishing/ for for this repo
-      #      with workflow file name `publish.yml`.
+      # Authentication is handled by the publish action:
+      #   - If the PYPI_API_TOKEN secret exists, it is used for token auth.
+      #   - Otherwise the action uses trusted publishing (OIDC) - recommended.
+      #     Add a pending publisher at https://pypi.org/manage/account/publishing/
+      #     for this repo with workflow file name `publish.yml`.
+      # (Note: the `secrets` context cannot be referenced in `if:` conditions,
+      # which is why this is a single step rather than two conditionals.)
 
-      - name: Publish to PyPI (API token)
-        if: ${{ secrets.PYPI_API_TOKEN != '' }}
+      - name: Publish to PyPI
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           password: ${{ secrets.PYPI_API_TOKEN }}
-          attestations: true
-
-      - name: Publish to PyPI (trusted publishing)
-        if: ${{ secrets.PYPI_API_TOKEN == '' }}
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
           attestations: true
