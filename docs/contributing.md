@@ -130,6 +130,50 @@ The build must pass in strict mode, since CI deploys with `--strict`.
 4. Update or add tests and docs as needed.
 5. Push and open a pull request against `main`.
 
+## Releases
+
+### Versioning policy (SemVer)
+
+This project follows [Semantic Versioning](https://semver.org/spec/v2.0.0.html):
+
+- **Patch** (`0.3.x`, `1.0.x`) — bug fixes and backward-compatible corrections only.
+  Bug fixes ship in patches; features never ship in patches.
+- **Minor** (`0.x.0`, `1.x.0`) — new features, new configuration options, or new
+  integrations that stay backward compatible.
+- **Major** (`1.0.0`, `2.0.0`) — breaking API changes. **1.0.0** freezes and
+  stabilizes the public API (CLI flags, generated project layout, template names);
+  nothing that consumers rely on changes without a major bump.
+
+The roadmap milestones (currently `v0.3.x` patches through `1.0.0`) are tracked in
+Linear; each patch milestone maps to one bug-fix+regression-test GitHub issue and
+one single-commit PR.
+
+### Cutting a patch release
+
+Before you start, the **Integration gate** must pass: run the full E2E matrix
+([integration tests](#integration-tests)) with `RUN_DJANGO_INTEGRATION_TESTS=1`
+and confirm it is green, since that is the only suite that proves a generated
+project *boots*, not just renders.
+
+1. **Merge** the patch PRs to `main` and confirm CI is green (Lint, Type check,
+   Test × 3, Integration, Package).
+2. **Bump the version in two places** — `__version__` in
+   `modern_django_starter/__init__.py` and `version` in `pyproject.toml` — and let
+   `tests/test_metadata.py` prove they match.
+3. **Update `CHANGELOG.md`** — move the patch entry out of its "Unreleased"
+   section into a dated `## [0.3.x] - YYYY-MM-DD` section, and update the version
+   links at the bottom.
+4. **Tag and push:**
+
+   ```bash
+   git tag v0.3.x
+   git push origin v0.3.x
+   ```
+
+   Pushing the tag triggers `publish.yml` (PyPI release); pushing `main` already
+   redeployed the docs via `docs.yml`.
+5. **Update the roadmap in Linear** — flip the milestone's issues to Done.
+
 ## License
 
 MIT — see the [LICENSE](https://github.com/CasualEngineerZombie/modern-django-starter/blob/main/LICENSE) file.
