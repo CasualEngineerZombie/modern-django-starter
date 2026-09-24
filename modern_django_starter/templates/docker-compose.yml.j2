@@ -37,7 +37,7 @@ services:
   db:
     image: postgres:{{ config.postgresql_version }}
     volumes:
-      - postgres_data:/var/lib/postgresql/data/
+      - postgres_data:{{ '/var/lib/postgresql' if config.postgresql_version | int >= 18 else '/var/lib/postgresql/data/' }}
     environment:
       POSTGRES_DB: {{ project_name }}
       POSTGRES_USER: postgres

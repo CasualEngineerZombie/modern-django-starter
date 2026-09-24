@@ -275,6 +275,25 @@ class GeneratedProjectRegressionUnitTests(unittest.TestCase):
         self.assertNotIn('djstripe', settings)
         self.assertNotIn('payments', urls)
 
+    def test_postgres_18_compose_mounts_version_aware_data_dir(self):
+        # The postgres:18+ image refuses to start when data is mounted at the
+        # legacy /var/lib/postgresql/data path; it requires the volume at
+        # /var/lib/postgresql so it can create a version-specific subdirectory.
+        pg18 = self.generate(
+            'pg18', _sqlite_config(use_docker=True, use_postgresql=True, postgresql_version='18')
+        )
+        data18 = yaml.safe_load(self.read(pg18, 'docker-compose.yml'))
+        self.assertEqual(data18['services']['db']['volumes'], ['postgres_data:/var/lib/postgresql'])
+
+        # Pre-18 images keep the historical data-directory layout.
+        pg16 = self.generate(
+            'pg16', _sqlite_config(use_docker=True, use_postgresql=True, postgresql_version='16')
+        )
+        data16 = yaml.safe_load(self.read(pg16, 'docker-compose.yml'))
+        self.assertEqual(
+            data16['services']['db']['volumes'], ['postgres_data:/var/lib/postgresql/data/']
+        )
+
 
 @unittest.skipUnless(RUN_INTEGRATION, 'set RUN_DJANGO_INTEGRATION_TESTS=1 to run')
 class GeneratedProjectMatrixIntegrationTests(unittest.TestCase):
