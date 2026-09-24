@@ -32,8 +32,8 @@ dependencies = [
 
 [dependency-groups]
 dev = [
-    "mypy>=1.17,<2",
-    "pytest>=8.0,<10",
+    "mypy>=1.17,<3",
+    "pytest>=8.0,<9",
     "ruff>=0.13,<1",
 ]
 docs = [
