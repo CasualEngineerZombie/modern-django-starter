@@ -55,9 +55,11 @@ class StripeWebhookSecretGenerationTests(unittest.TestCase):
         return (self.pkg / rel_path).read_text(encoding='utf-8').splitlines()
 
     def read_views(self):
-        return (self.project / 'apps' / 'payments' / 'views.py').read_text(
-            encoding='utf-8'
-        ).splitlines()
+        return (
+            (self.project / 'apps' / 'payments' / 'views.py')
+            .read_text(encoding='utf-8')
+            .splitlines()
+        )
 
     def read_project_file(self, rel_path):
         return (self.project / rel_path).read_text(encoding='utf-8').splitlines()
@@ -102,15 +104,12 @@ class StripeWebhookSecretGenerationTests(unittest.TestCase):
         # or the toolbar crashes on every response in development.
         lines = self.read_lines('urls.py')
         self.assertTrue(
-            any(
-                "path('__debug__/', include('debug_toolbar.urls'))" in line
-                for line in lines
-            ),
+            any("path('__debug__/', include('debug_toolbar.urls'))" in line for line in lines),
             'urls.py does not wire the debug_toolbar namespace',
         )
 
 
-WEBHOOK_TEST_SCRIPT = '''\
+WEBHOOK_TEST_SCRIPT = """\
 import hashlib
 import hmac
 import json
@@ -179,7 +178,7 @@ order.refresh_from_db()
 assert order.status == 'completed', order.status
 
 print('WEBHOOK_TEST_PASSED')
-'''
+"""
 
 
 @unittest.skipUnless(RUN_INTEGRATION, 'set RUN_DJANGO_INTEGRATION_TESTS=1 to run')
