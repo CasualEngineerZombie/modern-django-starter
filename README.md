@@ -3,8 +3,11 @@
 [![PyPI version](https://img.shields.io/pypi/v/modern-django-starter)](https://pypi.org/project/modern-django-starter/)
 [![Python](https://img.shields.io/pypi/pyversions/modern-django-starter)](https://pypi.org/project/modern-django-starter/)
 [![CI](https://github.com/CasualEngineerZombie/modern-django-starter/actions/workflows/ci.yml/badge.svg)](https://github.com/CasualEngineerZombie/modern-django-starter/actions/workflows/ci.yml)
+[![Docs](https://github.com/CasualEngineerZombie/modern-django-starter/actions/workflows/docs.yml/badge.svg)](https://github.com/CasualEngineerZombie/modern-django-starter/actions/workflows/docs.yml)
 
 A CLI tool that generates Django 6.1 projects with HTMX, AlpineJS, TailwindCSS, and more — with optional Docker, PostgreSQL, DRF, Celery, Sentry, Stripe, and cloud integrations.
+
+**📚 Full documentation: [mds.rianbarriga.com](https://mds.rianbarriga.com)**
 
 ## Installation
 
@@ -102,6 +105,17 @@ uv run pytest
 ```
 
 CI runs lint, type checking, and tests on Python 3.12, 3.13, and 3.14.
+
+### Documentation
+
+The docs site ([mds.rianbarriga.com](https://mds.rianbarriga.com)) is built with
+MkDocs Material and deployed to GitHub Pages by the `docs.yml` workflow on every push
+to `main`. Sources live in `docs/`. Preview locally with:
+
+```bash
+uv sync --group docs
+uv run mkdocs serve
+```
 
 ## Contributing
 

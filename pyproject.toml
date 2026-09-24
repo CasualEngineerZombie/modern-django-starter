@@ -38,10 +38,15 @@ dev = [
     "pytest>=8.0,<9",
     "ruff>=0.13,<1",
 ]
+docs = [
+    "mkdocs>=1.6,<2",
+    "mkdocs-material>=9.5,<10",
+]
 
 [project.urls]
 Homepage = "https://github.com/CasualEngineerZombie/modern-django-starter"
 Repository = "https://github.com/CasualEngineerZombie/modern-django-starter"
+Documentation = "https://mds.rianbarriga.com"
 Issues = "https://github.com/CasualEngineerZombie/modern-django-starter/issues"
 
 [project.scripts]
