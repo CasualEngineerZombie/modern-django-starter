@@ -62,10 +62,7 @@ class RequirementsGenerator(BaseGenerator):
             base_reqs.append('dj-stripe')
             base_reqs.append('stripe')
 
-        self.write_file(
-            requirements_dir / 'base.txt',
-            '\n'.join(base_reqs) + '\n'
-        )
+        self.write_file(requirements_dir / 'base.txt', '\n'.join(base_reqs) + '\n')
         self.write_file(requirements_dir / 'development.txt', '-r base.txt\n')
         self.write_file(requirements_dir / 'production.txt', '-r base.txt\n')
         self.write_file(self.project_dir / 'requirements.txt', '-r requirements/development.txt\n')

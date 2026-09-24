@@ -1,6 +1,5 @@
 """Generator for Docker files."""
 
-
 from .base import BaseGenerator
 
 

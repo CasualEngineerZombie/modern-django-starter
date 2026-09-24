@@ -29,7 +29,9 @@ class BaseGenerator:
         template = self.env.get_template(template_name)
         return template.render(project_name=self.project_name, config=self.config, **context)
 
-    def write_file(self, path: Path, content: str, encoding: str = 'utf-8', newline: str = None) -> None:
+    def write_file(
+        self, path: Path, content: str, encoding: str = 'utf-8', newline: str = None
+    ) -> None:
         """Write content to a file, creating parent directories if needed."""
         path.parent.mkdir(parents=True, exist_ok=True)
         path.write_text(content, encoding=encoding, newline=newline)

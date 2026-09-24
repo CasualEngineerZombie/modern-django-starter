@@ -143,7 +143,9 @@ class {app_name.title()}TestCase(TestCase):
 """
         self.write_file(app_dir / 'tests.py', content)
 
-    def _create_app_urls_py(self, app_dir: Path, app_name: str, is_core: bool = False, is_api: bool = False) -> None:
+    def _create_app_urls_py(
+        self, app_dir: Path, app_name: str, is_core: bool = False, is_api: bool = False
+    ) -> None:
         """Create urls.py for the app."""
         if is_core:
             content = """from django.urls import path

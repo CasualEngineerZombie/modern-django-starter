@@ -1,6 +1,5 @@
 """Generator for configuration files."""
 
-
 from .base import BaseGenerator
 
 

@@ -1,6 +1,5 @@
 """Generator for CI configuration files."""
 
-
 from .base import BaseGenerator
 
 

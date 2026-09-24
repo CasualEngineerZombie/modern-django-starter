@@ -1,6 +1,5 @@
 """Generator for static files."""
 
-
 from .base import BaseGenerator
 
 

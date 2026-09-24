@@ -16,14 +16,18 @@ from .templates import TemplateGenerator
 class ProjectGenerator(BaseGenerator):
     """
     Main project generator that coordinates all sub-generators.
-    
+
     This class follows the Facade pattern, providing a simple interface
     while delegating to specialized generator classes.
     """
 
     def __init__(self, project_name: str, output_dir: str | Path, config: dict):
-        super().__init__(project_name, Path(output_dir) / project_name, config, 
-                        Path(__file__).parent.parent / 'templates')
+        super().__init__(
+            project_name,
+            Path(output_dir) / project_name,
+            config,
+            Path(__file__).parent.parent / 'templates',
+        )
         self.output_dir = Path(output_dir)
         self.project_dir = self.output_dir / project_name
 
@@ -36,25 +40,41 @@ class ProjectGenerator(BaseGenerator):
 
         # Initialize all sub-generators
         generators = [
-            DjangoProjectGenerator(self.project_name, self.project_dir, self.config, self.template_dir),
-            DjangoAppsGenerator(self.project_name, self.project_dir, self.config, self.template_dir),
-            RequirementsGenerator(self.project_name, self.project_dir, self.config, self.template_dir),
-            ConfigurationGenerator(self.project_name, self.project_dir, self.config, self.template_dir),
+            DjangoProjectGenerator(
+                self.project_name, self.project_dir, self.config, self.template_dir
+            ),
+            DjangoAppsGenerator(
+                self.project_name, self.project_dir, self.config, self.template_dir
+            ),
+            RequirementsGenerator(
+                self.project_name, self.project_dir, self.config, self.template_dir
+            ),
+            ConfigurationGenerator(
+                self.project_name, self.project_dir, self.config, self.template_dir
+            ),
         ]
 
         # Add optional generators based on config
         if not self.config.get('api_only'):
             generators.append(
-                TemplateGenerator(self.project_name, self.project_dir, self.config, self.template_dir)
+                TemplateGenerator(
+                    self.project_name, self.project_dir, self.config, self.template_dir
+                )
             )
             generators.append(
-                StaticFilesGenerator(self.project_name, self.project_dir, self.config, self.template_dir)
+                StaticFilesGenerator(
+                    self.project_name, self.project_dir, self.config, self.template_dir
+                )
             )
 
-        generators.extend([
-            DockerGenerator(self.project_name, self.project_dir, self.config, self.template_dir),
-            CIGenerator(self.project_name, self.project_dir, self.config, self.template_dir),
-        ])
+        generators.extend(
+            [
+                DockerGenerator(
+                    self.project_name, self.project_dir, self.config, self.template_dir
+                ),
+                CIGenerator(self.project_name, self.project_dir, self.config, self.template_dir),
+            ]
+        )
 
         # Run all generators
         for generator in generators:
