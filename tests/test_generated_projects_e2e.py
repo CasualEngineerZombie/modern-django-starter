@@ -275,6 +275,25 @@ class GeneratedProjectRegressionUnitTests(unittest.TestCase):
         self.assertNotIn('djstripe', settings)
         self.assertNotIn('payments', urls)
 
+    def test_generated_output_has_no_stale_django_51_references(self):
+        # The generator emits Django 6.1 projects; the scaffolded docs links,
+        # README features, and homepage badge must never point at Django 5.1.
+        project = self.generate('v033_drift', _sqlite_config(use_async=True))
+        package = project / project.name  # the generated Django project package
+        rendered = {
+            'README.md': self.read(project, 'README.md'),
+            'home.html': self.read(project, 'templates/home.html'),
+            'asgi.py': self.read(package, 'asgi.py'),
+            'wsgi.py': self.read(package, 'wsgi.py'),
+        }
+        for rel, content in rendered.items():
+            with self.subTest(file=rel):
+                self.assertNotIn('5.1', content)
+                self.assertNotIn('5.x', content)
+        self.assertIn('Django 6.1', rendered['README.md'])
+        self.assertIn('en/6.1/', rendered['asgi.py'])
+        self.assertIn('en/6.1/', rendered['wsgi.py'])
+
     def test_postgres_18_compose_mounts_version_aware_data_dir(self):
         # The postgres:18+ image refuses to start when data is mounted at the
         # legacy /var/lib/postgresql/data path; it requires the volume at
