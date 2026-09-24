@@ -74,6 +74,26 @@ jobs:
   integration:
     name: Integration (generated-project E2E matrix)
     runs-on: ubuntu-latest
+    services:
+      kumo:
+        image: ghcr.io/sivchari/kumo:latest
+        env:
+          KUMO_HOST: 0.0.0.0
+          KUMO_PORT: 4566
+          KUMO_LOG_LEVEL: info
+        ports:
+          - 4566:4566
+        # Explicit ports mapping required for GitHub-hosted runners to reach
+        # the service container on localhost:4566. act runs use the compose
+        # kumo from docker-compose.act.yml which also maps 4566:4566.
+        # Healthcheck ensures the job waits for kumo to be fully ready (it
+        # registers many AWS services and takes ~2-3 minutes) before running
+        # tests. The test itself also polls with a 60s timeout as a fallback.
+        options: >-
+          --health-cmd="wget -q --spider http://localhost:4566/ || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=30
     steps:
       - uses: actions/checkout@v7
 
@@ -89,12 +109,25 @@ jobs:
       - name: Run generated-project E2E tests
         env:
           RUN_DJANGO_INTEGRATION_TESTS: "1"
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_STORAGE_BUCKET_NAME: test-bucket
         run: |
-          uv run pytest -q \
+          # GitHub-hosted runners reach the kumo service container on the
+          # mapped localhost port; act runs (ci-local.sh) override it via
+          # .act.env if their endpoint differs, so keep the default
+          # overridable.
+          export AWS_S3_ENDPOINT_URL="${AWS_S3_ENDPOINT_URL:-http://localhost:4566}"
+          # --no-cov: these E2E tests exercise the generated projects, not the
+          # generator package, so the 70% coverage gate (meant for the unit
+          # suite) would fail on ~1% coverage of the package sources.
+          uv run pytest -q --no-cov \
             tests/test_api_only_integration.py \
             tests/test_storage_dependencies.py \
             tests/test_stripe_webhook_secret.py \
-            tests/test_generated_projects_e2e.py
+            tests/test_generated_projects_e2e.py \
+            tests/test_aws_s3_integration.py
 
   package:
     name: Package

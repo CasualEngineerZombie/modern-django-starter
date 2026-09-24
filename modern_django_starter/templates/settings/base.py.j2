@@ -295,6 +295,9 @@ STORAGES = {
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
 AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default='')
 AWS_STORAGE_BUCKET_NAME = config('AWS_STORAGE_BUCKET_NAME', default='')
+# Optional: point boto3 at an S3-compatible endpoint (MinIO, kumo, LocalStack).
+# Must be None when unset, so an empty decouple default is coerced below.
+AWS_S3_ENDPOINT_URL = config('AWS_S3_ENDPOINT_URL', default='') or None
 AWS_S3_REGION_NAME = config('AWS_S3_REGION_NAME', default='us-east-1')
 AWS_S3_CUSTOM_DOMAIN = config('AWS_S3_CUSTOM_DOMAIN', default='')
 AWS_S3_OBJECT_PARAMETERS = {'CacheControl': 'max-age=86400'}
@@ -304,6 +307,7 @@ STORAGES = {
         'BACKEND': 'storages.backends.s3.S3Storage',
         'OPTIONS': {
             'bucket_name': AWS_STORAGE_BUCKET_NAME,
+            'endpoint_url': AWS_S3_ENDPOINT_URL,
             'region_name': AWS_S3_REGION_NAME,
             'location': AWS_LOCATION,
         },
@@ -312,7 +316,14 @@ STORAGES = {
         'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage',
     },
 }
-MEDIA_URL = config('MEDIA_URL', default=f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/')
+MEDIA_URL = config(
+    'MEDIA_URL',
+    default=(
+        f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/{AWS_LOCATION}/'
+        if AWS_S3_ENDPOINT_URL and not AWS_S3_CUSTOM_DOMAIN
+        else f'https://{AWS_S3_CUSTOM_DOMAIN}/{AWS_LOCATION}/'
+    ),
+)
 {% elif config.storage_provider == 'cloudflare-r2' %}
 AWS_ACCESS_KEY_ID = config('AWS_ACCESS_KEY_ID', default='')
 AWS_SECRET_ACCESS_KEY = config('AWS_SECRET_ACCESS_KEY', default='')

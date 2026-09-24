@@ -57,7 +57,8 @@ RUN_DJANGO_INTEGRATION_TESTS=1 uv run pytest -q \
   tests/test_api_only_integration.py \
   tests/test_storage_dependencies.py \
   tests/test_stripe_webhook_secret.py \
-  tests/test_generated_projects_e2e.py
+  tests/test_generated_projects_e2e.py \
+  tests/test_aws_s3_integration.py
 ```
 
 The matrix lives at the top of `test_generated_projects_e2e.py`:
@@ -80,6 +81,43 @@ The matrix lives at the top of `test_generated_projects_e2e.py`:
 
 When you add a configuration option to the generator, add (or extend) a matrix
 entry here so the new combination is proven to boot, not just render.
+
+### AWS S3 round trip (kumo emulator)
+
+`tests/test_aws_s3_integration.py` generates an AWS-storage project and runs a
+real django-storages round trip (save → open → delete) against
+[kumo](https://github.com/sivchari/kumo), an AWS emulator with an S3-compatible
+API. The generated project is pointed at the emulator via its
+`AWS_S3_ENDPOINT_URL` setting, so the exact storage code path production uses
+is exercised. To run it against the compose kumo:
+
+```bash
+docker compose -f docker-compose.act.yml up -d kumo
+RUN_DJANGO_INTEGRATION_TESTS=1 AWS_S3_ENDPOINT_URL=http://localhost:4566 \
+  AWS_ACCESS_KEY_ID=test AWS_SECRET_ACCESS_KEY=test \
+  uv run pytest -q tests/test_aws_s3_integration.py
+```
+
+Without `AWS_S3_ENDPOINT_URL` the test skips, so unit runs stay hermetic.
+
+### Run CI locally with act
+
+`ci-local.sh` runs the CI workflow locally with
+[act](https://nektosact.com) (install: `winget install nektos.act`), so there
+is no wait for GitHub Actions results on every push:
+
+```bash
+./ci-local.sh                  # every ci.yml job
+./ci-local.sh -j integration   # just the kumo-backed integration job
+```
+
+The integration tests reach the compose kumo on `localhost:4566` (act runs job
+containers on the host network, and `ci-local.sh` starts the emulator first);
+GitHub-hosted runners use the workflow's own kumo service container instead.
+`.act.env` is machine-local (gitignored) — tracked defaults live in
+`.act.env.example`. One caveat: `DockerComposeStackIntegrationTests` is
+skipped under act (`ACT=true`), because its `./staticfiles` bind mount points
+at a path inside the job container that the outer Docker daemon cannot see.
 
 ## Project layout
 

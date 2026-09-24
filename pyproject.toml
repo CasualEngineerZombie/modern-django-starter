@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "modern-django-starter"
-version = "0.3.10"
+version = "0.3.11"
 description = "A CLI tool for generating Django 6.1 projects with HTMX, AlpineJS, and more"
 readme = "README.md"
 license = "MIT"
@@ -34,6 +34,7 @@ dependencies = [
 dev = [
     "mypy>=1.17,<3",
     "pytest>=9.1.1,<10",
+    "pytest-cov>=6.0.0,<7",
     "ruff>=0.13,<1",
 ]
 docs = [
@@ -75,3 +76,41 @@ files = ["modern_django_starter"]
 ignore_missing_imports = true
 check_untyped_defs = true
 warn_unused_ignores = true
+
+[tool.pytest.ini_options]
+addopts = [
+    "--cov=modern_django_starter",
+    "--cov-report=term-missing",
+    "--cov-report=html:htmlcov",
+    "--cov-report=xml:coverage.xml",
+    "--cov-fail-under=70",
+]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["*Test*"]
+python_functions = ["test_*"]
+
+[tool.coverage.run]
+source = ["modern_django_starter"]
+omit = [
+    "*/tests/*",
+    "*/__pycache__/*",
+    "*/.venv/*",
+    "*/venv/*",
+    "*/site-packages/*",
+    "modern_django_starter/templates/*",
+    "modern_django_starter/generator.py",
+]
+branch = true
+
+[tool.coverage.report]
+exclude_lines = [
+    "pragma: no cover",
+    "def __repr__",
+    "raise AssertionError",
+    "raise NotImplementedError",
+    "if __name__ == .__main__.:",
+    "if TYPE_CHECKING:",
+]
+show_missing = true
+skip_covered = false
