@@ -131,3 +131,5 @@ dmypy.json
 Thumbs.db
 examples/
 PYPI-release.md
+.*.env
+*.env.*
