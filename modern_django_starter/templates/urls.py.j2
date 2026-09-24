@@ -27,15 +27,18 @@ urlpatterns = [
     path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
     # Main API
     path('api/', include('apps.api.urls')),
+{% if config.use_stripe %}
+    path('api/payments/', include('apps.payments.urls')),
+{% endif %}
 {% else %}
     path('', include('apps.core.urls')),
     path('accounts/', include('allauth.urls')),
 {% if config.use_drf %}
     path('api/', include('apps.api.urls')),
 {% endif %}
-{% endif %}
-{% if config.use_stripe and not config.api_only %}
+{% if config.use_stripe %}
     path('payments/', include('apps.payments.urls')),
+{% endif %}
 {% endif %}
 ]
 

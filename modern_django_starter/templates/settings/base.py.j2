@@ -43,7 +43,7 @@ THIRD_PARTY_APPS = [
     'corsheaders',
 {% endif %}
 {% endif %}
-{% if config.use_stripe and not config.api_only %}
+{% if config.use_stripe %}
     'djstripe',
 {% endif %}
 {% if config.storage_provider != 'local' %}
@@ -58,7 +58,7 @@ LOCAL_APPS = [
     'apps.core',
     'apps.accounts',
 {% endif %}
-{% if config.use_stripe and not config.api_only %}
+{% if config.use_stripe %}
     'apps.payments',
 {% endif %}
 ]
@@ -273,7 +273,7 @@ sentry_sdk.init(
 )
 {% endif %}
 
-{% if config.use_stripe and not config.api_only %}
+{% if config.use_stripe %}
 STRIPE_PUBLISHABLE_KEY = config('STRIPE_PUBLISHABLE_KEY', default='')
 STRIPE_SECRET_KEY = config('STRIPE_SECRET_KEY', default='')
 DJSTRIPE_WEBHOOK_SECRET = config('DJSTRIPE_WEBHOOK_SECRET', default='')
