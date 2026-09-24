@@ -1,142 +1,112 @@
-# Modern Django Starter 🚀
+# Modern Django Starter
 
-[![PyPI version](https://badge.fury.io/py/modern-django-starter.svg)](https://badge.fury.io/py/modern-django-starter)
-[![PyPI](https://img.shields.io/pypi/v/modern-django-starter)](https://pypi.org/project/modern-django-starter/)
+[![PyPI version](https://img.shields.io/pypi/v/modern-django-starter)](https://pypi.org/project/modern-django-starter/)
 [![Python](https://img.shields.io/pypi/pyversions/modern-django-starter)](https://pypi.org/project/modern-django-starter/)
-[![Downloads](https://pepy.tech/badge/modern-django-starter)](https://pepy.tech/project/modern-django-starter)
+[![CI](https://github.com/CasualEngineerZombie/modern-django-starter/actions/workflows/ci.yml/badge.svg)](https://github.com/CasualEngineerZombie/modern-django-starter/actions/workflows/ci.yml)
 
-A CLI tool for generating modern Django 6.1 projects with HTMX, AlpineJS, and more. Streamline your setup with customizable options for Docker, databases, cloud providers, authentication, background tasks, storage, and frontend pipelines.
+A CLI tool that generates Django 6.1 projects with HTMX, AlpineJS, TailwindCSS, and more — with optional Docker, PostgreSQL, DRF, Celery, Sentry, Stripe, and cloud integrations.
 
 ## Installation
 
-Install from PyPI:
+Requires Python 3.12+.
 
 ```bash
-# with uv (recommended)
+# uv (recommended)
 uv tool install modern-django-starter
 
-# or with pip
+# pip
 pip install modern-django-starter
 ```
 
-📦 **PyPI Package**: https://pypi.org/project/modern-django-starter/
-
-## Quick Start
-
-Generate a new Django project:
-
-```bash
-modern-django-starter create my_awesome_project
-```
-
-Or with options:
-
-```bash
-modern-django-starter create my_project --output-dir /path/to/projects
-```
-
-Project names must be valid Python identifiers because Django uses the project name as the Python package name.
-
-## API-Only Projects
-
-Generate a Django REST API project with no frontend, templates, or static assets:
-
-- Django REST Framework (DRF)
-- JWT authentication (djangorestframework-simplejwt)
-- CORS support (django-cors-headers)
-- API schema & docs (drf-spectacular)
-- Registration/auth endpoints (dj-rest-auth, django-allauth)
-
-Example:
-
-```bash
-modern-django-starter create my_api_project --api-only
-```
-
-## Features
-
-- Django 6.1
-- HTMX for dynamic HTML updates
-- AlpineJS for lightweight JavaScript interactions
-- Django-allauth for authentication
-- TailwindCSS and DaisyUI for styling
-- Docker support (optional)
-- PostgreSQL 15, 16, 17, or 18
-- Cloud provider integration options
-- Email provider integration using Django 6.1 MAILERS
-- Django REST Framework (DRF) support
-- **API-only mode**: DRF, JWT, CORS, Spectacular, dj-rest-auth, and allauth
-- Frontend pipeline options
-- Celery for background task processing
-- Sentry for error tracking
-- CI tool integration options
-
-## Prerequisites
-
-- Python 3.12+
-- [uv](https://docs.astral.sh/uv/) (recommended) or pip
-
-Optional:
-- Node.js and npm (for frontend pipelines)
-- Docker (for containerized development)
-
-## Development Installation
-
-If you want to contribute or install from source:
-
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/CasualEngineerZombie/modern-django-starter.git
-   cd modern-django-starter
-   ```
-
-2. Install dependencies in development mode:
-   ```bash
-   uv sync
-   ```
-
-3. Run checks locally (same checks as CI):
-   ```bash
-   uv run ruff check .
-   uv run ruff format --check .
-   uv run mypy
-   uv run pytest
-   ```
-
 ## Usage
 
-Generate a new Django project:
-
 ```bash
-modern-django-starter create my_awesome_project
+modern-django-starter create my_project
 ```
 
-Or specify an output directory:
+To create a project somewhere else:
 
 ```bash
 modern-django-starter create my_project --output-dir /path/to/projects
 ```
 
-The CLI will guide you through configuration options interactively.
+Project names must be valid Python identifiers because they become the Django package name.
 
-## Configuration Options
+Without extra flags, the CLI asks for your choices interactively:
 
-- Docker support
-- PostgreSQL version
-- Cloud provider (AWS, Azure, GCP, Render, Railway, PythonAnywhere, Fly.io, Dokku, Heroku, or none)
-- Email provider
-- Asynchronous support
+| Option | Choices |
+|---|---|
+| Docker | yes / no |
+| PostgreSQL | 15, 16, 17, 18 |
+| Cloud provider | none, AWS, Azure, GCP, Render, Railway, PythonAnywhere, Fly.io, Dokku, Heroku |
+| Storage provider | local, AWS, GCP, Azure, Cloudflare R2 |
+| Email provider | none, SendGrid, Mailgun, SES, Postmark |
+| Async support | yes / no |
+| Django REST Framework | yes / no |
+| Celery | yes / no |
+| Sentry | yes / no |
+| Stripe | yes / no |
+| Frontend pipeline | none, webpack, vite, parcel |
+| CI tool | none, GitHub Actions, GitLab CI, Travis, CircleCI |
+
+### API-only projects
+
+Pass `--api-only` to skip the frontend and generate a pure DRF backend:
+
+```bash
+modern-django-starter create my_api --api-only
+```
+
+Includes:
+
 - Django REST Framework
-- **API-only mode** (`--api-only`): DRF, JWT, CORS, Spectacular, dj-rest-auth, allauth, no frontend
-- Frontend pipeline
-- Celery
-- Sentry
-- CI tools
+- JWT auth (djangorestframework-simplejwt)
+- CORS (django-cors-headers)
+- API schema and docs (drf-spectacular)
+- Registration/auth endpoints (dj-rest-auth, django-allauth)
+
+## Generated project
+
+- Django 6.1
+- HTMX and AlpineJS
+- Django-allauth authentication
+- TailwindCSS and DaisyUI styling
+- Settings split into `base`, `development`, and `production`
+- Optional: Docker, PostgreSQL, DRF, Celery, Sentry, Stripe, CI workflow, frontend pipeline
+
+## Development
+
+### Prerequisites
+
+- Python 3.12+
+- [uv](https://docs.astral.sh/uv/)
+- Node.js and npm (only needed if you test frontend pipeline generation)
+
+### Setup
+
+```bash
+git clone https://github.com/CasualEngineerZombie/modern-django-starter.git
+cd modern-django-starter
+uv sync
+```
+
+### Checks
+
+Run the same checks as CI:
+
+```bash
+uv run ruff check .
+uv run ruff format --check .
+uv run mypy
+uv run pytest
+```
+
+CI runs lint, type checking, and tests on Python 3.12, 3.13, and 3.14.
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Pull requests are welcome. Run the checks above before submitting.
 
 ## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+MIT — see the [LICENSE](LICENSE) file.
