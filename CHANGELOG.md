@@ -10,6 +10,13 @@ is cut (see the release process in [`docs/contributing.md`](docs/contributing.md
 
 ## [Unreleased]
 
+## [0.3.9] - 2026-09-24
+
+### Added
+
+- Root `CHANGELOG.md` in the Keep a Changelog format ([#44](https://github.com/CasualEngineerZombie/modern-django-starter/issues/44), PR [#48](https://github.com/CasualEngineerZombie/modern-django-starter/pull/48)).
+- Release process + SemVer policy documented in `docs/contributing.md` ([#44](https://github.com/CasualEngineerZombie/modern-django-starter/issues/44), PR [#48](https://github.com/CasualEngineerZombie/modern-django-starter/pull/48)).
+
 ### Fixed
 
 - The generated Docker stack is now bootable and initialized out of the box
@@ -30,12 +37,10 @@ is cut (see the release process in [`docs/contributing.md`](docs/contributing.md
   and the README/CLI/docs no longer tell users to run a manual `migrate` step.
   Production startup (plain `gunicorn`, no auto-migrate) is now documented.
 
-## [0.3.9] - Unreleased
+### Changed
 
-### Added
-
-- Root `CHANGELOG.md` in the Keep a Changelog format ([#44](https://github.com/CasualEngineerZombie/modern-django-starter/issues/44), PR [#48](https://github.com/CasualEngineerZombie/modern-django-starter/pull/48)).
-- Release process + SemVer policy documented in `docs/contributing.md` ([#44](https://github.com/CasualEngineerZombie/modern-django-starter/issues/44), PR [#48](https://github.com/CasualEngineerZombie/modern-django-starter/pull/48)).
+- `pytest` 8.4.2 → 9.1.1 (PR [#39](https://github.com/CasualEngineerZombie/modern-django-starter/pull/39)).
+- `mypy` 1.20.2 → 2.3.1 (PR [#40](https://github.com/CasualEngineerZombie/modern-django-starter/pull/40)).
 
 ## [0.3.8] - Unreleased
 
