@@ -4,8 +4,7 @@ services:
   kumo:
     image: ghcr.io/sivchari/kumo:latest
     ports:
-      - "4566:4566"    # S3 API
-      - "4567:4567"    # Health check
+      - "4566:4566"    # S3 API (also serves the health probe below)
     environment:
       - KUMO_HOST=0.0.0.0
       - KUMO_PORT=4566
@@ -13,7 +12,9 @@ services:
     networks:
       - act_network
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:4567/health"]
+      # The image serves only the AWS APIs on KUMO_PORT (nothing on 4567);
+      # an S3 ListBuckets request doubles as the readiness probe.
+      test: ["CMD", "wget", "-q", "--spider", "http://localhost:4566/"]
       interval: 5s
       timeout: 3s
       retries: 10

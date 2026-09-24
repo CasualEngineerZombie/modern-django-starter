@@ -74,6 +74,19 @@ jobs:
   integration:
     name: Integration (generated-project E2E matrix)
     runs-on: ubuntu-latest
+    services:
+      kumo:
+        image: ghcr.io/sivchari/kumo:latest
+        env:
+          KUMO_HOST: 0.0.0.0
+          KUMO_PORT: 4566
+          KUMO_LOG_LEVEL: info
+        # No explicit ports mapping: the image EXPOSEs 4566, so GitHub-hosted
+        # runners reach it on localhost:4566, and act never tries to bind host
+        # ports for the service (which would collide with the compose kumo
+        # that local act runs reach on localhost instead, see ci-local.sh).
+        # No healthcheck options either: act does not wait for service
+        # health, so the tests poll the emulator themselves instead.
     steps:
       - uses: actions/checkout@v7
 
@@ -89,12 +102,25 @@ jobs:
       - name: Run generated-project E2E tests
         env:
           RUN_DJANGO_INTEGRATION_TESTS: "1"
+          AWS_ACCESS_KEY_ID: test
+          AWS_SECRET_ACCESS_KEY: test
+          AWS_DEFAULT_REGION: us-east-1
+          AWS_STORAGE_BUCKET_NAME: test-bucket
         run: |
-          uv run pytest -q \
+          # GitHub-hosted runners reach the kumo service container on the
+          # mapped localhost port; act runs (ci-local.sh) override it via
+          # .act.env if their endpoint differs, so keep the default
+          # overridable.
+          export AWS_S3_ENDPOINT_URL="${AWS_S3_ENDPOINT_URL:-http://localhost:4566}"
+          # --no-cov: these E2E tests exercise the generated projects, not the
+          # generator package, so the 70% coverage gate (meant for the unit
+          # suite) would fail on ~1% coverage of the package sources.
+          uv run pytest -q --no-cov \
             tests/test_api_only_integration.py \
             tests/test_storage_dependencies.py \
             tests/test_stripe_webhook_secret.py \
-            tests/test_generated_projects_e2e.py
+            tests/test_generated_projects_e2e.py \
+            tests/test_aws_s3_integration.py
 
   package:
     name: Package

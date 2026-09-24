@@ -40,6 +40,12 @@ from modern_django_starter.generator import ProjectGenerator
 
 RUN_INTEGRATION = os.getenv('RUN_DJANGO_INTEGRATION_TESTS') == '1'
 
+# act job containers share the outer Docker daemon but not its filesystem, so
+# this test's ./staticfiles bind mount points at a path the daemon cannot see
+# and the nested web container never becomes healthy (the Postgres test is
+# unaffected because its db uses a named volume). act sets ACT=true.
+RUNNING_UNDER_ACT = os.getenv('ACT') == 'true'
+
 
 def _sqlite_config(**overrides):
     """A shared baseline config: SQLite, local storage, no extras."""
@@ -630,6 +636,9 @@ class PostgresProjectIntegrationTests(unittest.TestCase):
 
 @unittest.skipUnless(RUN_INTEGRATION, 'set RUN_DJANGO_INTEGRATION_TESTS=1 to run')
 @unittest.skipUnless(shutil.which('docker'), 'docker is not available')
+@unittest.skipIf(
+    RUNNING_UNDER_ACT, 'under act the bind-mounted staticfiles path is invisible to the daemon'
+)
 class DockerComposeStackIntegrationTests(unittest.TestCase):
     """A fresh ``docker compose up`` boots a healthy, initialized project.
 
