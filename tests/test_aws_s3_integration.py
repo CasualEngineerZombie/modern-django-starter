@@ -163,7 +163,7 @@ s3 = boto3.client(
     aws_secret_access_key={S3_SECRET_KEY!r},
 )
 
-deadline = time.time() + 60
+deadline = time.time() + 300
 while True:
     try:
         buckets = {{b['Name'] for b in s3.list_buckets()['Buckets']}}
