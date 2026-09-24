@@ -270,14 +270,32 @@ class GeneratedProjectRegressionUnitTests(unittest.TestCase):
         data = yaml.safe_load(self.read(project, 'docker-compose.yml'))
         self.assertEqual(set(data['services']['web']['depends_on']), {'db', 'redis'})
 
-    def test_api_only_stripe_is_not_emitted(self):
+    def test_api_only_stripe_emits_drf_endpoints(self):
         project = self.generate('api_stripe', _sqlite_config(api_only=True, use_stripe=True))
         settings = self.read(project, 'api_stripe/settings/base.py')
         urls = self.read(project, 'api_stripe/urls.py')
-        # API-only projects have no frontend checkout flow, so Stripe must not
-        # add djstripe/payments references that would fail at import time.
-        self.assertNotIn('djstripe', settings)
-        self.assertNotIn('payments', urls)
+        # API-only projects with Stripe now include djstripe and a payments app
+        # with DRF endpoints for checkout sessions, webhooks, and order management.
+        self.assertIn('djstripe', settings)
+        self.assertIn('apps.payments', settings)
+        self.assertIn('STRIPE_SECRET_KEY', settings)
+        self.assertIn('DJSTRIPE_WEBHOOK_SECRET', settings)
+        self.assertIn('api/payments/', urls)
+        # Verify the payments app has DRF views (not template views)
+        payments_views = self.read(project, 'apps/payments/views.py')
+        self.assertIn('OrderViewSet', payments_views)
+        self.assertIn('CheckoutViewSet', payments_views)
+        self.assertIn('StripeWebhookView', payments_views)
+        self.assertNotIn('checkout_view', payments_views)  # No Django template views
+        self.assertNotIn('success_view', payments_views)
+        self.assertNotIn('cancel_view', payments_views)
+        # Verify payments app has serializers
+        self.assertTrue((project / 'apps' / 'payments' / 'serializers.py').exists())
+        # Verify payments URLs use DRF router
+        payments_urls = self.read(project, 'apps/payments/urls.py')
+        self.assertIn('DefaultRouter', payments_urls)
+        self.assertIn('OrderViewSet', payments_urls)
+        self.assertIn('CheckoutViewSet', payments_urls)
 
     def test_generated_output_has_no_stale_django_51_references(self):
         # The generator emits Django 6.1 projects; the scaffolded docs links,
