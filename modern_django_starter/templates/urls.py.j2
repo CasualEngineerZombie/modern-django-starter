@@ -34,7 +34,7 @@ urlpatterns = [
     path('api/', include('apps.api.urls')),
 {% endif %}
 {% endif %}
-{% if config.use_stripe %}
+{% if config.use_stripe and not config.api_only %}
     path('payments/', include('apps.payments.urls')),
 {% endif %}
 ]
