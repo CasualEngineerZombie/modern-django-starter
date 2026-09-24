@@ -1,6 +1,5 @@
 """Generator for CI configuration files."""
 
-from pathlib import Path
 
 from .base import BaseGenerator
 

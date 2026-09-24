@@ -1,6 +1,5 @@
 """Generator for static files."""
 
-from pathlib import Path
 
 from .base import BaseGenerator
 

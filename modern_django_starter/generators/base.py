@@ -1,9 +1,9 @@
 """Base generator class with common functionality."""
 
 from pathlib import Path
+
 from jinja2 import Environment, FileSystemLoader
 from rich.console import Console
-
 
 console = Console()
 

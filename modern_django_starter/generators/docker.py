@@ -1,6 +1,5 @@
 """Generator for Docker files."""
 
-from pathlib import Path
 
 from .base import BaseGenerator
 

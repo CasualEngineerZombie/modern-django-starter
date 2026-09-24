@@ -3,14 +3,14 @@
 from pathlib import Path
 
 from .base import BaseGenerator
-from .django_project import DjangoProjectGenerator
-from .django_apps import DjangoAppsGenerator
-from .requirements import RequirementsGenerator
-from .configuration import ConfigurationGenerator
-from .templates import TemplateGenerator
-from .static_files import StaticFilesGenerator
-from .docker import DockerGenerator
 from .ci import CIGenerator
+from .configuration import ConfigurationGenerator
+from .django_apps import DjangoAppsGenerator
+from .django_project import DjangoProjectGenerator
+from .docker import DockerGenerator
+from .requirements import RequirementsGenerator
+from .static_files import StaticFilesGenerator
+from .templates import TemplateGenerator
 
 
 class ProjectGenerator(BaseGenerator):
