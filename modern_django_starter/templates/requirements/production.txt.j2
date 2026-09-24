@@ -7,29 +7,8 @@ gunicorn==23.0.0
 # Production utilities
 whitenoise==6.8.2
 
-{% if config.storage_provider == 'aws' %}
-# AWS storage
-boto3==1.35.95
-django-storages==1.14.4
-{% endif %}
-
-{% if config.storage_provider == 'gcp' %}
-# Google Cloud storage
-google-cloud-storage==2.18.2
-django-storages==1.14.4
-{% endif %}
-
-{% if config.storage_provider == 'azure' %}
-# Azure storage
-azure-storage-blob==12.24.0
-django-storages==1.14.4
-{% endif %}
-
-{% if config.storage_provider == 'cloudflare-r2' %}
-# Cloudflare R2 storage (S3-compatible)
-boto3==1.35.95
-django-storages==1.14.4
-{% endif %}
+# Cloud storage dependencies (django-storages + provider SDKs) are defined in
+# base.txt, which is included above, so they are installed in every environment.
 
 {% if config.cloud_provider == 'aws' and config.storage_provider != 'aws' %}
 # AWS deployment tools

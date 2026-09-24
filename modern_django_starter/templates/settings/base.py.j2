@@ -340,12 +340,18 @@ STORAGES = {
 }
 MEDIA_URL = config('MEDIA_URL', default=f'{AWS_S3_ENDPOINT_URL}/{AWS_STORAGE_BUCKET_NAME}/{AWS_LOCATION}/')
 {% elif config.storage_provider == 'gcp' %}
-from google.oauth2 import service_account
-
 GS_BUCKET_NAME = config('GCS_BUCKET_NAME', default='')
-GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
-    config('GOOGLE_APPLICATION_CREDENTIALS', default='')
-)
+GOOGLE_APPLICATION_CREDENTIALS = config('GOOGLE_APPLICATION_CREDENTIALS', default='')
+GS_CREDENTIALS = None
+if GOOGLE_APPLICATION_CREDENTIALS:
+    # Only require the service-account file when it is actually configured so
+    # that ``manage.py check`` succeeds in a fresh project before credentials
+    # are provisioned.
+    from google.oauth2 import service_account
+
+    GS_CREDENTIALS = service_account.Credentials.from_service_account_file(
+        GOOGLE_APPLICATION_CREDENTIALS
+    )
 STORAGES = {
     'default': {
         'BACKEND': 'storages.backends.gcloud.GoogleCloudStorage',
