@@ -87,8 +87,9 @@ jobs:
       - name: Run generated-project E2E tests
         env:
           RUN_DJANGO_INTEGRATION_TESTS: "1"
-        run: uv run pytest -q \
-          tests/test_api_only_integration.py \
-          tests/test_storage_dependencies.py \
-          tests/test_stripe_webhook_secret.py \
-          tests/test_generated_projects_e2e.py
+        run: |
+          uv run pytest -q \
+            tests/test_api_only_integration.py \
+            tests/test_storage_dependencies.py \
+            tests/test_stripe_webhook_secret.py \
+            tests/test_generated_projects_e2e.py
