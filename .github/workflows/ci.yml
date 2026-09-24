@@ -67,6 +67,8 @@ jobs:
         run: uv sync --frozen
 
       - name: Run pytest
+        env:
+          PYTHONWARNINGS: "error::SyntaxWarning,error::DeprecationWarning"
         run: uv run pytest -q
 
   integration:
