@@ -16,7 +16,7 @@ and config files — no flags to memorize.
 | **Email provider** | none, SendGrid, Mailgun, SES, Postmark | none | See [Email providers](integrations.md#email) |
 | **Async support** | yes / no | no | Generates `asgi.py` and sets `ASGI_APPLICATION` |
 | **Django REST Framework** | yes / no | yes | Adds DRF + Token auth + CORS + API app |
-| **Celery** | yes / no | full: yes · api-only: no | Adds Celery, django-celery-beat/results |
+| **Celery** | yes / no | full: yes · api-only: no | Adds Celery with a Redis broker (see [Celery](integrations.md#celery)) |
 | **Sentry** | yes / no | full: yes · api-only: no | Error tracking + performance monitoring |
 | **Stripe** | yes / no | no | Adds djstripe + a payments app |
 | **Frontend pipeline** | none, webpack, vite, parcel | full: vite · api-only: none | Generates `package.json` (+ `vite.config.js` for Vite) |

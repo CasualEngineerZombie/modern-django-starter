@@ -42,14 +42,18 @@ The Django admin, allauth, and the API health check all work out of the box.
 When enabled, the project includes:
 
 - `celery` with a **Redis** broker (`CELERY_BROKER_URL`, defaults to
-  `redis://localhost:6379`)
-- `django-celery-beat` for scheduled tasks
-- `django-celery-results` for task result storage
+  `redis://localhost:6379`) and result backend (`CELERY_RESULT_BACKEND`)
 
 ```bash
 celery -A my_project worker -l info
 celery -A my_project beat -l info
 ```
+
+!!! note "Django 6.1 compatibility"
+    `django-celery-beat` (the admin UI and database scheduler) is not emitted
+    because its latest release caps at `Django<6.1` and cannot be installed
+    next to the generated `Django==6.1.1`. Re-add it once upstream supports
+    Django 6.x.
 
 ## Sentry
 

@@ -41,6 +41,40 @@ uv run mypy
 uv run pytest
 ```
 
+## Integration tests
+
+`tests/test_generated_projects_e2e.py` contains an end-to-end *matrix* that generates a
+representative project for each major configuration combination, installs its
+dependencies into a temporary virtual environment, runs `manage.py check`,
+runs migrations, and executes the generated project's own test suite.
+Docker-enabled configurations are also validated with `docker compose config`
+(when Docker is available).
+
+These tests download and install packages, so they are skipped unless you opt in:
+
+```bash
+RUN_DJANGO_INTEGRATION_TESTS=1 uv run pytest -q \
+  tests/test_api_only_integration.py \
+  tests/test_storage_dependencies.py \
+  tests/test_stripe_webhook_secret.py \
+  tests/test_generated_projects_e2e.py
+```
+
+The matrix lives at the top of `test_generated_projects_e2e.py`:
+
+- `MATRIX` — runnable configurations (SQLite) that must pass check, migrate,
+  and the generated test suite.
+- `CHECK_ONLY_MATRIX` — feature-maximal PostgreSQL configurations that must
+  install and pass `manage.py check`, but cannot migrate without a live
+  database; their Docker setups are covered by the Compose validation.
+- `POSTGRES_ENTRY` — a PostgreSQL configuration that `PostgresProjectIntegrationTests`
+  boots against a real database: it starts the generated project's own `db`
+  service with `docker compose up -d db`, then runs migrate and the generated
+  test suite against it (requires Docker).
+
+When you add a configuration option to the generator, add (or extend) a matrix
+entry here so the new combination is proven to boot, not just render.
+
 ## Project layout
 
 ```text
