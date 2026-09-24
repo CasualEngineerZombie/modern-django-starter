@@ -36,10 +36,12 @@ Settings are split across three modules:
 - `settings/development.py` — local development overrides
 - `settings/production.py` — production overrides
 
-!!! info "API-only simplification"
-    In API-only projects the three settings files are generated with the **same minimal
-    content** — a single consolidated DRF configuration — since there is no frontend
-    pipeline to split.
+!!! info "API-only projects"
+    API-only projects keep the same three-module settings layout and reuse the same
+    templates. The API-only branch of `settings/base.py` enables DRF with JWT auth,
+    drf-spectacular schema docs, and dj-rest-auth; `settings/development.py` skips the
+    frontend debug tooling (`django-debug-toolbar`, `django-extensions`) that has no
+    use in a headless backend.
 
 ## Environment variables
 

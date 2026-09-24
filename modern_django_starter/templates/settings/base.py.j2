@@ -30,11 +30,18 @@ THIRD_PARTY_APPS = [
     'allauth',
     'allauth.account',
     'allauth.socialaccount',
+{% if config.api_only %}
+    'rest_framework',
+    'corsheaders',
+    'drf_spectacular',
+    'dj_rest_auth',
+{% else %}
     'widget_tweaks',
 {% if config.use_drf %}
     'rest_framework',
     'rest_framework.authtoken',
     'corsheaders',
+{% endif %}
 {% endif %}
 {% if config.use_celery %}
     'django_celery_beat',
@@ -49,8 +56,12 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
+{% if config.api_only %}
+    'apps.api',
+{% else %}
     'apps.core',
     'apps.accounts',
+{% endif %}
 {% if config.use_stripe %}
     'apps.payments',
 {% endif %}
@@ -155,9 +166,16 @@ ACCOUNT_EMAIL_VERIFICATION = 'mandatory'
 
 {% if config.use_drf %}
 REST_FRAMEWORK = {
+{% if config.api_only %}
+    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
+{% endif %}
     'DEFAULT_AUTHENTICATION_CLASSES': [
+{% if config.api_only %}
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
+{% else %}
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
+{% endif %}
     ],
     'DEFAULT_PERMISSION_CLASSES': [
         'rest_framework.permissions.IsAuthenticated',
@@ -165,6 +183,23 @@ REST_FRAMEWORK = {
     'DEFAULT_PAGINATION_CLASS': 'rest_framework.pagination.PageNumberPagination',
     'PAGE_SIZE': 20,
 }
+
+{% if config.api_only %}
+# API schema and JWT configuration for dj-rest-auth.
+SPECTACULAR_SETTINGS = {
+    'TITLE': '{{ project_name }} API',
+    'DESCRIPTION': 'API documentation',
+    'VERSION': '1.0.0',
+    'SERVE_INCLUDE_SCHEMA': False,
+}
+
+# JWT-only authentication for dj-rest-auth (configured via the REST_AUTH
+# dict): no authtoken app is installed, so the DRF token model is disabled.
+REST_AUTH = {
+    'USE_JWT': True,
+    'TOKEN_MODEL': None,
+}
+{% endif %}
 
 CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='', cast=Csv())
 CORS_ALLOW_CREDENTIALS = True
