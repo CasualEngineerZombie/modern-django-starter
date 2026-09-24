@@ -68,3 +68,21 @@ jobs:
 
       - name: Run pytest
         run: uv run pytest -q
+
+  integration:
+    name: Integration (generated API-only project)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install the project
+        run: uv sync --frozen
+
+      - name: Run Django integration test
+        run: RUN_DJANGO_INTEGRATION_TESTS=1 uv run pytest tests/test_api_only_integration.py -q

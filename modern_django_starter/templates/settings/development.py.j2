@@ -6,6 +6,7 @@ from .base import *
 
 DEBUG = True
 
+{% if not config.api_only %}
 INSTALLED_APPS += [
     'debug_toolbar',
     'django_extensions',
@@ -14,6 +15,7 @@ INSTALLED_APPS += [
 MIDDLEWARE = [
     'debug_toolbar.middleware.DebugToolbarMiddleware',
 ] + MIDDLEWARE
+{% endif %}
 
 # Database settings are inherited from base.py so Docker and local
 # development use the same environment-driven configuration.
@@ -30,9 +32,11 @@ MAILERS = {
     },
 }
 
+{% if not config.api_only %}
 STATICFILES_DIRS = [
     BASE_DIR / 'static',
 ]
+{% endif %}
 
 CACHES = {
     'default': {

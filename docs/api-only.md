@@ -21,9 +21,32 @@ Celery, Sentry, Stripe, CI), but a few choices are fixed to keep the backend min
 
 - **Django REST Framework** — `IsAuthenticated` by default, JWT as the default auth class
 - **JWT auth** — `djangorestframework-simplejwt`
-- **CORS** — `django-cors-headers` with `CORS_ALLOW_ALL_ORIGINS = True` in dev
+- **CORS** — `django-cors-headers`; origins are allowlisted via the
+  `CORS_ALLOWED_ORIGINS` environment variable (no allow-all default)
 - **API schema & docs** — `drf-spectacular` (Swagger UI)
 - **Registration & auth endpoints** — `dj-rest-auth` + `django-allauth`
+
+## Settings layout
+
+API-only projects reuse the same three-module settings layout as full projects,
+generated from the same templates:
+
+- `settings/base.py` — shared configuration: DRF with JWT auth, drf-spectacular,
+  dj-rest-auth (JWT-only), allauth, CORS
+- `settings/development.py` — `DEBUG = True`; no frontend debug tooling
+  (`django-debug-toolbar` is skipped since there are no templates)
+- `settings/production.py` — `DEBUG = False` plus the standard security headers
+
+Hardened defaults inherited from the shared templates:
+
+- `DEBUG` defaults to **off** — only `settings/development.py` forces it on, and
+  `settings/production.py` pins it off
+- CORS is allowlisted via `CORS_ALLOWED_ORIGINS` (there is no
+  `CORS_ALLOW_ALL_ORIGINS`)
+- Modern allauth configuration (`ACCOUNT_LOGIN_METHODS` / `ACCOUNT_SIGNUP_FIELDS`)
+  and the Django 6.1 `MAILERS` configuration are used
+- `django.contrib.sites` + `SITE_ID` are configured so allauth and dj-rest-auth
+  work out of the box
 
 ## Root URL configuration
 

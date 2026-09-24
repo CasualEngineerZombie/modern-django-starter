@@ -58,137 +58,19 @@ class ProjectGenerator:
         settings_dir = project_package / 'settings'
         settings_dir.mkdir(exist_ok=True)
         (settings_dir / '__init__.py').write_text('', encoding='utf-8')
-        if self.config.get('api_only'):
-            # Minimal DRF-only settings
-            base_settings = f'''"""
-Minimal DRF-only settings for {self.project_name}
-"""
-import os
-from pathlib import Path
-
-BASE_DIR = Path(__file__).resolve().parent.parent.parent
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-change-me-in-production')
-DEBUG = os.environ.get('DEBUG', 'True') == 'True'
-ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
-
-INSTALLED_APPS = [
-    'django.contrib.admin',
-    'django.contrib.auth',
-    'django.contrib.contenttypes',
-    'django.contrib.sessions',
-    'django.contrib.messages',
-    'django.contrib.staticfiles',
-    'rest_framework',
-    'corsheaders',
-    'drf_spectacular',
-    'dj_rest_auth',
-    'allauth',
-    'allauth.account',
-    'allauth.socialaccount',
-]
-
-MIDDLEWARE = [
-    'django.middleware.security.SecurityMiddleware',
-    'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
-    'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',
-    'django.contrib.messages.middleware.MessageMiddleware',
-    'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'allauth.account.middleware.AccountMiddleware',
-]
-
-ROOT_URLCONF = '{self.project_name}.urls'
-
-WSGI_APPLICATION = '{self.project_name}.wsgi.application'
-
-DATABASES = {{
-    'default': {{
-        'ENGINE': 'django.db.backends.postgresql' if {str(self.config.get('use_postgresql', False))} else 'django.db.backends.sqlite3',
-        'NAME': os.environ.get('DB_NAME', '{self.project_name}'),
-        'USER': os.environ.get('DB_USER', 'postgres'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', ''),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5432'),
-    }} if {str(self.config.get('use_postgresql', False))} else {{
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
-    }}
-}}
-
-LANGUAGE_CODE = 'en-us'
-TIME_ZONE = 'UTC'
-USE_I18N = True
-USE_TZ = True
-STATIC_URL = '/static/'
-STATIC_ROOT = BASE_DIR / 'staticfiles'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = BASE_DIR / 'media'
-DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-
-# DRF, JWT, Spectacular
-REST_FRAMEWORK = {{
-    'DEFAULT_SCHEMA_CLASS': 'drf_spectacular.openapi.AutoSchema',
-    'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',
-    ],
-    'DEFAULT_PERMISSION_CLASSES': [
-        'rest_framework.permissions.IsAuthenticated',
-    ],
-}}
-
-SPECTACULAR_SETTINGS = {{
-    'TITLE': '{self.project_name} API',
-    'DESCRIPTION': 'API documentation',
-    'VERSION': '1.0.0',
-    'SERVE_INCLUDE_SCHEMA': False,
-}}
-
-CORS_ALLOW_ALL_ORIGINS = True
-
-# Email (console)
-EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
-DEFAULT_FROM_EMAIL = 'noreply@{self.project_name}.com'
-'''
-            for fname in ['base.py', 'development.py', 'production.py']:
-                (settings_dir / fname).write_text(base_settings, encoding='utf-8')
-        else:
-            # Generate settings files
-            for settings_file in ['base.py', 'development.py', 'production.py']:
-                template = self.env.get_template(f'settings/{settings_file}.j2')
-                content = template.render(project_name=self.project_name, config=self.config)
-                (settings_dir / settings_file).write_text(content, encoding='utf-8')
-        # Create urls.py
+        # Generate settings from the shared templates. API-only projects reuse
+        # the same base/development/production split; the templates branch on
+        # `config.api_only` for the DRF/JWT/schema-specific settings instead of
+        # hard-coding a second set of settings files.
+        for settings_file in ['base.py', 'development.py', 'production.py']:
+            template = self.env.get_template(f'settings/{settings_file}.j2')
+            content = template.render(project_name=self.project_name, config=self.config)
+            (settings_dir / settings_file).write_text(content, encoding='utf-8')
+        # Create urls.py from the shared template (API-only branch included).
         urls_path = project_package / 'urls.py'
-        if self.config.get('api_only'):
-            urls_content = f'''"""
-Minimal DRF-only urls for {self.project_name}
-"""
-from django.contrib import admin
-from django.urls import path, include
-from drf_spectacular.views import SpectacularAPIView, SpectacularSwaggerView
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
-
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    # API schema and docs
-    path('api/schema/', SpectacularAPIView.as_view(), name='schema'),
-    path('api/docs/', SpectacularSwaggerView.as_view(url_name='schema'), name='swagger-ui'),
-    # Auth endpoints (JWT, registration, password reset)
-    path('api/auth/login/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/auth/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    path('api/auth/', include('dj_rest_auth.urls')),
-    path('api/auth/registration/', include('dj_rest_auth.registration.urls')),
-    # Main API
-    path('api/', include('apps.api.urls')),
-]
-'''
-            urls_path.write_text(urls_content, encoding='utf-8')
-        else:
-            urls_template = self.env.get_template('urls.py.j2')
-            content = urls_template.render(config=self.config)
-            urls_path.write_text(content, encoding='utf-8')
+        urls_template = self.env.get_template('urls.py.j2')
+        content = urls_template.render(project_name=self.project_name, config=self.config)
+        urls_path.write_text(content, encoding='utf-8')
         # Create wsgi.py and asgi.py
         wsgi_template = self.env.get_template('wsgi.py.j2')
         content = wsgi_template.render(project_name=self.project_name)
@@ -628,17 +510,37 @@ urlpatterns = [
         requirements_dir = self.project_dir / 'requirements'
         requirements_dir.mkdir(exist_ok=True)
         if self.config.get('api_only'):
-            # Minimal DRF API requirements
+            # Minimal DRF API requirements. Kept deliberately lean for API-only
+            # projects, but complete enough to run the shared settings templates:
+            # python-decouple is required (settings/base.py.j2 reads configuration
+            # through decouple) and cloud-storage packages are added when a
+            # non-local storage provider is selected. The Django floor is 6.1 to
+            # match the shared templates.
             base_reqs = [
-                'Django>=5.0',
+                'Django>=6.1',
                 'djangorestframework',
                 'django-cors-headers',
                 'drf-spectacular',
                 'djangorestframework-simplejwt',
                 'dj-rest-auth',
                 'django-allauth',
-                'psycopg2-binary',
+                # dj-rest-auth registration pulls in
+                # allauth.socialaccount.providers.oauth2.client, which requires
+                # requests at import time.
+                'requests',
+                'python-decouple',
             ]
+            if self.config.get('use_postgresql'):
+                base_reqs.append('psycopg2-binary')
+            storage_provider = self.config.get('storage_provider', 'local')
+            if storage_provider != 'local':
+                base_reqs.append('django-storages')
+                if storage_provider in ('aws', 'cloudflare-r2'):
+                    base_reqs.append('boto3')
+                elif storage_provider == 'gcp':
+                    base_reqs.append('google-cloud-storage')
+                elif storage_provider == 'azure':
+                    base_reqs.append('azure-storage-blob')
             (requirements_dir / 'base.txt').write_text(
                 '\n'.join(base_reqs) + '\n', encoding='utf-8'
             )
