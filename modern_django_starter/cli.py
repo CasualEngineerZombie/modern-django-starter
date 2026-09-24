@@ -10,7 +10,7 @@ from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
 from . import __version__
-from .generator import ProjectGenerator
+from .generators import ProjectGenerator
 from .logo import LOGO
 
 console = Console()
