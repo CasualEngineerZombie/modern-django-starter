@@ -1,0 +1,81 @@
+site_name: Modern Django Starter
+site_description: Generate modern Django 6.1 projects with HTMX, AlpineJS, TailwindCSS, Docker, PostgreSQL, DRF, Celery, Stripe and more.
+site_author: Rian
+site_url: https://mds.rianbarriga.com
+repo_url: https://github.com/CasualEngineerZombie/modern-django-starter
+repo_name: CasualEngineerZombie/modern-django-starter
+edit_uri: blob/main/docs/
+copyright: Copyright &copy; 2026 Rian &mdash; Modern Django Starter is released under the MIT License.
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: en
+  icon:
+    logo: material/rocket-launch
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: green
+      accent: amber
+      toggle:
+        icon: material/weather-night
+        name: Switch to dark mode
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: green
+      accent: amber
+      toggle:
+        icon: material/weather-sunny
+        name: Switch to light mode
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.top
+    - navigation.footer
+    - search.suggest
+    - search.highlight
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - toc:
+      permalink: true
+  - pymdownx.details
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+
+nav:
+  - Home: index.md
+  - Getting Started: getting-started.md
+  - CLI Reference: cli-reference.md
+  - Configuration: configuration.md
+  - Generated Project: generated-project.md
+  - API-Only Projects: api-only.md
+  - Integrations: integrations.md
+  - Deployment: deployment.md
+  - Contributing: contributing.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/CasualEngineerZombie
+    - icon: fontawesome/brands/python
+      link: https://pypi.org/project/modern-django-starter/
