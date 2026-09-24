@@ -8,6 +8,7 @@
 A CLI tool that generates Django 6.1 projects with HTMX, AlpineJS, TailwindCSS, and more — with optional Docker, PostgreSQL, DRF, Celery, Sentry, Stripe, and cloud integrations.
 
 **📚 Full documentation: [mds.rianbarriga.com](https://mds.rianbarriga.com)**
+**📝 Release history: [CHANGELOG.md](CHANGELOG.md)**
 
 ## Installation
 

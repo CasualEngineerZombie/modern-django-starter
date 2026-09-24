@@ -3,7 +3,7 @@ from unittest.mock import patch
 
 from click.testing import CliRunner
 
-from modern_django_starter import __version__
+from modern_django_starter import __version__, logo
 from modern_django_starter.cli import cli
 from modern_django_starter.logo import INFO_BOX, MDS_v3
 
@@ -16,6 +16,12 @@ class TestCLIBanner(unittest.TestCase):
 
     def test_info_box_version_matches_package(self):
         self.assertIn(f'v{__version__}', INFO_BOX)
+
+    def test_banner_uses_v3_art_only(self):
+        # The legacy MDS_v2 art was removed in v0.3.2; guard the banner
+        # contract so it can never silently regress back to the v2 logo.
+        self.assertNotIn('MDS_v2', dir(logo))
+        self.assertIn(MDS_v3.strip(), logo.LOGO)
 
     def test_no_args_shows_logo(self):
         result = self.runner.invoke(cli, [])
