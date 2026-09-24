@@ -13,22 +13,22 @@ if exist build rmdir /s /q build
 if exist *.egg-info rmdir /s /q *.egg-info
 
 REM Build the package
-F:/djangos/modern-django-starter/.venv/Scripts/python.exe -m build
+uv build
 
 REM Check the package
 echo 🔍 Checking package...
-F:/djangos/modern-django-starter/.venv/Scripts/twine.exe check dist/*
+uvx twine check dist\*
 
 if "%ENV%"=="test" (
     echo 📦 Uploading to Test PyPI...
-    F:/djangos/modern-django-starter/.venv/Scripts/twine.exe upload --repository testpypi dist/*
+    uvx twine upload --repository testpypi dist\*
     echo ✅ Upload complete! Test with:
-    echo pip install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ modern-django-starter
+    echo uv tool install --index-url https://test.pypi.org/simple/ --extra-index-url https://pypi.org/simple/ modern-django-starter
 ) else if "%ENV%"=="prod" (
     echo 📦 Uploading to Production PyPI...
-    F:/djangos/modern-django-starter/.venv/Scripts/twine.exe upload dist/*
+    uvx twine upload dist\*
     echo ✅ Upload complete! Install with:
-    echo pip install modern-django-starter
+    echo uv tool install modern-django-starter
 ) else (
     echo ❌ Invalid environment. Use 'test' or 'prod'
     exit /b 1
