@@ -10,6 +10,20 @@ is cut (see the release process in [`docs/contributing.md`](docs/contributing.md
 
 ## [Unreleased]
 
+## [0.3.10] - 2026-09-24
+
+### Added
+
+- Stripe DRF endpoints for API-only projects ([#51](https://github.com/CasualEngineerZombie/modern-django-starter/issues/51), PR [#51](https://github.com/CasualEngineerZombie/modern-django-starter/pull/51)):
+  API-only projects (`--api-only`) can now enable Stripe payments with full DRF API support:
+  `OrderViewSet` (list/retrieve orders), `CheckoutViewSet` (create checkout sessions, success/cancel handlers),
+  and `StripeWebhookView` (handle `checkout.session.completed` webhooks).
+  No frontend templates required — just add `STRIPE_SECRET_KEY`, `STRIPE_PUBLISHABLE_KEY`, and `DJSTRIPE_WEBHOOK_SECRET` to `.env`.
+
+### Fixed
+
+- API-only Stripe generation was completely missing; now properly generates payments app with DRF serializers, views, and URLs.
+
 ## [0.3.9] - 2026-09-24
 
 ### Added
@@ -132,6 +146,7 @@ Initial public release.
 
 [Keep a Changelog]: https://keepachangelog.com/en/1.1.0/
 [Semantic Versioning]: https://semver.org/spec/v2.0.0.html
+[0.3.10]: https://github.com/CasualEngineerZombie/modern-django-starter/compare/v0.3.9...v0.3.10
 [0.3.9]: https://github.com/CasualEngineerZombie/modern-django-starter/compare/v0.3.8...v0.3.9
 [0.3.8]: https://github.com/CasualEngineerZombie/modern-django-starter/compare/v0.3.7...v0.3.8
 [0.3.7]: https://github.com/CasualEngineerZombie/modern-django-starter/compare/v0.3.6...v0.3.7
