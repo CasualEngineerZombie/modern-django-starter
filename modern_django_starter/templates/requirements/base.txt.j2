@@ -46,5 +46,19 @@ stripe==11.3.0
 dj-stripe==2.9.5
 {% endif %}
 
+{% if config.storage_provider in ('aws', 'cloudflare-r2') %}
+# Cloud storage ({{ config.storage_provider }})
+django-storages==1.14.4
+boto3==1.35.95
+{% elif config.storage_provider == 'gcp' %}
+# Cloud storage (Google Cloud Storage)
+django-storages==1.14.4
+google-cloud-storage==2.18.2
+{% elif config.storage_provider == 'azure' %}
+# Cloud storage (Azure Blob Storage)
+django-storages==1.14.4
+azure-storage-blob==12.24.0
+{% endif %}
+
 # Utilities
 python-dotenv==1.0.1

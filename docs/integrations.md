@@ -86,7 +86,11 @@ Required env vars: `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`,
 ## Cloud storage
 
 Choosing a storage provider wires **django-storages** into the `STORAGES` default backend
-for media files. Static files remain on the local filesystem.
+for media files. Static files remain on the local filesystem. The matching
+`django-storages` and provider SDK packages are pinned in the generated
+`requirements/base.txt`, which both `development.txt` and `production.txt`
+include, so every environment has exactly the packages the selected backend
+needs.
 
 | Provider | Backend |
 |---|---|
