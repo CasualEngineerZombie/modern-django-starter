@@ -86,8 +86,14 @@ jobs:
         # Explicit ports mapping required for GitHub-hosted runners to reach
         # the service container on localhost:4566. act runs use the compose
         # kumo from docker-compose.act.yml which also maps 4566:4566.
-        # No healthcheck options: act does not wait for service health, so the
-        # tests poll the emulator themselves instead.
+        # Healthcheck ensures the job waits for kumo to be fully ready (it
+        # registers many AWS services and takes ~2-3 minutes) before running
+        # tests. The test itself also polls with a 60s timeout as a fallback.
+        options: >-
+          --health-cmd="wget -q --spider http://localhost:4566/ || exit 1"
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=30
     steps:
       - uses: actions/checkout@v7
 
