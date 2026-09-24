@@ -9,7 +9,7 @@ description = "A CLI tool for generating Django 6.1 projects with HTMX, AlpineJS
 readme = "README.md"
 license = "MIT"
 authors = [
-    { name = "Rian", email = "rian@pythonist.dev" }
+    { name = "Rian", email = "dev@rianbarriga.com" }
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -38,7 +38,7 @@ dev = [
 ]
 docs = [
     "mkdocs>=1.6,<2",
-    "mkdocs-material>=9.5,<10",
+    "mkdocs-material==9.7.1",  # pinned before the MkDocs 2.0 banner (9.7.2+) broke --strict
 ]
 
 [project.urls]
