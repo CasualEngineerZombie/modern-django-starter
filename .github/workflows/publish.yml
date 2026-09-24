@@ -1,0 +1,78 @@
+name: Publish to PyPI
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+# Only one publish at a time; supersede any queued runs.
+concurrency:
+  group: publish-pypi
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  # id-token + attestations are needed for PyPI trusted publishing and for
+  # attaching signed provenance attestations to the uploaded artifacts.
+  id-token: write
+  attestations: write
+
+jobs:
+  publish:
+    name: Build and publish to PyPI
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install the project
+        run: uv sync --frozen
+
+      - name: Verify release tag matches package version
+        if: github.event_name == 'release'
+        shell: bash
+        run: |
+          set -euo pipefail
+          TAG="${GITHUB_REF_NAME#v}"
+          PKG_VERSION="$(grep -E '^version = ' pyproject.toml | head -1 | sed -E 's/^version = "([^"]+)".*/\1/')"
+          INIT_VERSION="$(grep -E '^__version__' modern_django_starter/__init__.py | head -1 | sed -E "s/__version__ = '([^']+)'.*/\1/")"
+          echo "Release tag:    ${GITHUB_REF_NAME}"
+          echo "pyproject.toml: ${PKG_VERSION}"
+          echo "__init__.py:    ${INIT_VERSION}"
+          if [ "$TAG" != "$PKG_VERSION" ] || [ "$TAG" != "$INIT_VERSION" ]; then
+            echo "::error::Release tag '${GITHUB_REF_NAME}' must match the package version (pyproject.toml: ${PKG_VERSION}, __init__.py: ${INIT_VERSION}). Bump both before tagging."
+            exit 1
+          fi
+
+      - name: Run tests
+        run: uv run pytest -q
+
+      - name: Build package
+        run: uv build
+
+      - name: Validate package
+        run: uvx twine check dist/*
+
+      # PyPI publishing supports two authentication methods:
+      #   1. An API token stored in the PYPI_API_TOKEN repository secret, or
+      #   2. Trusted publishing (OIDC) - recommended. Add a pending publisher
+      #      at https://pypi.org/manage/account/publishing/ for for this repo
+      #      with workflow file name `publish.yml`.
+
+      - name: Publish to PyPI (API token)
+        if: ${{ secrets.PYPI_API_TOKEN != '' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          attestations: true
+
+      - name: Publish to PyPI (trusted publishing)
+        if: ${{ secrets.PYPI_API_TOKEN == '' }}
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          attestations: true
