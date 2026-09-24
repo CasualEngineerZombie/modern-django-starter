@@ -215,7 +215,7 @@ This project includes a complete Stripe integration with:
 3. **Set up webhooks** in the Stripe Dashboard:
    - Add endpoint: `https://yourapp.com/payments/webhook/`
    - Select events: `checkout.session.completed`
-   - Copy webhook secret to `STRIPE_WEBHOOK_SECRET`
+   - Copy webhook secret to `DJSTRIPE_WEBHOOK_SECRET`
 
 #### Available endpoints:
 - `/payments/checkout/` - Create a checkout session
@@ -292,8 +292,7 @@ Copy `.env.example` to `.env` and configure:
 {% if config.use_stripe %}
 - `STRIPE_PUBLISHABLE_KEY` - Stripe publishable key (starts with pk_)
 - `STRIPE_SECRET_KEY` - Stripe secret key (starts with sk_)
-- `STRIPE_WEBHOOK_SECRET` - Stripe webhook endpoint secret
-- `DJSTRIPE_WEBHOOK_SECRET` - dj-stripe webhook secret
+- `DJSTRIPE_WEBHOOK_SECRET` - Stripe webhook endpoint secret (used by dj-stripe and the payments webhook view)
 {% endif %}
 {% if config.storage_provider != 'local' %}
 

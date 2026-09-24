@@ -43,7 +43,8 @@ sentry-sdk==2.21.0
 {% if config.use_stripe %}
 # Payment processing
 stripe==11.3.0
-dj-stripe==2.9.5
+# dj-stripe 2.9.5 was never released on PyPI; 2.9.2 is the latest 2.9.x.
+dj-stripe==2.9.2
 {% endif %}
 
 {% if config.storage_provider in ('aws', 'cloudflare-r2') %}
