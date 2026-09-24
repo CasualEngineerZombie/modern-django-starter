@@ -94,7 +94,6 @@ Generated projects read configuration from environment variables via
 |---|---|
 | `STRIPE_PUBLISHABLE_KEY` | *—* |
 | `STRIPE_SECRET_KEY` | *—* |
-| `STRIPE_WEBHOOK_SECRET` | *—* |
 | `DJSTRIPE_WEBHOOK_SECRET` | *—* |
 
 ### Storage providers

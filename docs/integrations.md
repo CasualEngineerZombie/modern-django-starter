@@ -75,8 +75,9 @@ If Stripe is enabled, a full **payments** app is generated using `dj-stripe`:
 | `/payments/orders/` | The current user's orders |
 | `/payments/webhook/` | Stripe webhook endpoint |
 
-Required env vars: `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`,
-`STRIPE_WEBHOOK_SECRET`, and `DJSTRIPE_WEBHOOK_SECRET`.
+Required env vars: `STRIPE_PUBLISHABLE_KEY`, `STRIPE_SECRET_KEY`, and
+`DJSTRIPE_WEBHOOK_SECRET` (the single webhook secret used by both dj-stripe and
+the generated webhook view).
 
 !!! tip "Testing"
     Use Stripe's test cards — `4242 4242 4242 4242` for a successful payment,
