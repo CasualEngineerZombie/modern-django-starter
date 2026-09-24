@@ -215,7 +215,10 @@ def create(project_name, output_dir, api_only):
         console.print('\n[bold blue]🎯 Next Steps:[/bold blue]')
         console.print(f'1. cd {project_name}')
         if config['use_docker']:
-            console.print('2. docker compose up -d')
+            console.print('2. docker compose up -d   # waits for deps, runs migrations, starts')
+            console.print(
+                '3. docker compose exec web python manage.py createsuperuser   # optional'
+            )
         else:
             console.print('2. python -m venv venv')
             console.print('3. source venv/bin/activate  # or venv\\Scripts\\activate on Windows')

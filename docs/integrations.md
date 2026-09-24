@@ -7,15 +7,34 @@ each one adds to the generated project.
 
 When enabled, the project includes:
 
-- `Dockerfile` — multi-stage Python image
+- `Dockerfile` — Python image; the production default command boots `gunicorn`
 - `docker-compose.yml` — web service plus any required services (PostgreSQL, Redis)
+- `entrypoint.sh` — stack initializer (wait for deps, migrate, static, start)
 - `.dockerignore`
 
 ```bash
 cp .env.example .env
-docker compose up -d
-docker compose exec web python manage.py migrate
+docker compose up -d --build
+docker compose exec web python manage.py createsuperuser
 ```
+
+The compose `web` service runs `entrypoint.sh` on startup: it waits for the
+database and Redis broker (when enabled), applies `migrate --noinput`, runs
+`collectstatic --noinput`, and then starts the dev server. `celery` /
+`celery-beat` only wait for dependencies, so initialization happens exactly
+once per stack startup. Set `SKIP_INIT=1` to skip the initialization (one-off
+containers).
+
+The compose stack builds the image with `requirements/development.txt` (a
+Dockerfile `REQUIREMENTS` build arg) because it runs the development settings
+module, which needs the dev-only apps (`debug_toolbar`, `django-extensions`).
+A plain `docker build .` keeps the slim production requirements.
+
+Development containers run as your host user (`${UID:-1000}:${GID:-1000}`) so
+files created in the bind mount — `db.sqlite3`, `staticfiles/` — stay owned by
+you. Production containers do not auto-migrate: the image's default command is
+`gunicorn` and migrations are applied as a separate release step (see
+[Deployment](deployment.md)).
 
 ## PostgreSQL
 

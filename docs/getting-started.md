@@ -116,12 +116,14 @@ modern-django-starter create my_project --output-dir ~/projects
     ```bash
     cd my_project
     cp .env.example .env          # fill in values if needed
-    docker compose up -d
-    docker compose exec web python manage.py migrate
+    docker compose up -d --build
     docker compose exec web python manage.py createsuperuser
     ```
 
-    Visit <http://localhost:8000> and the admin at <http://localhost:8000/admin>.
+    On startup the `web` container waits for its dependencies, applies
+    migrations, and collects static files before starting the dev server. Visit
+    <http://localhost:8000> and the admin at <http://localhost:8000/admin>.
+    Production containers do not auto-migrate — see [Deployment](deployment.md).
 
 === "Without Docker"
 
