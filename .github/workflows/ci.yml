@@ -95,3 +95,35 @@ jobs:
             tests/test_storage_dependencies.py \
             tests/test_stripe_webhook_secret.py \
             tests/test_generated_projects_e2e.py
+
+  package:
+    name: Package
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv and Python
+        uses: astral-sh/setup-uv@v9.0.0
+        with:
+          python-version: "3.12"
+          enable-cache: true
+
+      - name: Install the project
+        run: uv sync --frozen
+
+      - name: Build package
+        run: uv build
+
+      - name: Validate package
+        run: uvx twine check dist/*
+
+      - name: Verify template data is packaged
+        run: |
+          python -c '
+          import glob, zipfile
+          wheel = glob.glob("dist/*.whl")[0]
+          names = zipfile.ZipFile(wheel).namelist()
+          templates = [n for n in names if n.startswith("modern_django_starter/templates/")]
+          assert templates, "templates package-data missing from wheel"
+          print(len(templates), "template files packaged in wheel")
+          '
