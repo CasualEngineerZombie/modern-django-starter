@@ -9,19 +9,38 @@ from rich.console import Console
 from rich.prompt import Confirm, Prompt
 from rich.table import Table
 
+from . import __version__
 from .generator import ProjectGenerator
+from .logo import LOGO
 
 console = Console()
 
 
-@click.group()
-@click.version_option()
+class MDSCommand(click.Command):
+    """A click command whose help output is preceded by the MDS banner."""
+
+    def get_help(self, ctx):
+        return f'{LOGO}\n\n{super().get_help(ctx)}'
+
+
+class MDSGroup(click.Group):
+    """A click group whose help output is preceded by the MDS banner."""
+
+    def get_help(self, ctx):
+        return f'{LOGO}\n\n{super().get_help(ctx)}'
+
+
+@click.group(cls=MDSGroup)
+@click.version_option(
+    version=__version__,
+    message=f'{LOGO}\n\n%(prog)s, version %(version)s',
+)
 def cli():
     """Modern Django Starter - Generate Django 6.1 projects with modern features."""
     pass
 
 
-@cli.command()
+@cli.command(cls=MDSCommand)
 @click.argument('project_name', required=False)
 @click.option('--output-dir', '-o', default='.', help='Output directory for the project')
 @click.option(
@@ -32,7 +51,8 @@ def cli():
 )
 def create(project_name, output_dir, api_only):
     """Create a new Django project with modern features or API-only DRF backend."""
-    console.print('[bold green]🚀 Modern Django Starter[/bold green]')
+    print(LOGO)
+    console.print()
     if api_only:
         console.print('Generate Django 6.1 API-only DRF backend (no frontend, no templates)\n')
     else:
@@ -206,8 +226,28 @@ def create(project_name, output_dir, api_only):
         sys.exit(1)
 
 
+def _configure_utf8_stdio() -> None:
+    """Force UTF-8 on stdout/stderr so Unicode glyphs survive non-UTF-8 codepages.
+
+    On Windows the default ``cp1252`` output encoding cannot encode the logo's
+    block characters or the ``🚀``/``✅`` emoji when stdout is piped (e.g.
+    ``cmd /c ... | more``). Reconfiguring to UTF-8 keeps the CLI from crashing
+    on those Unicode-heavy banners.
+    """
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, 'reconfigure', None)
+        if reconfigure is None:
+            continue
+        try:
+            reconfigure(encoding='utf-8')
+        except (AttributeError, ValueError, OSError):
+            # Stream is closed, detached, or does not support reconfiguration.
+            pass
+
+
 def main():
     """Main entry point for the CLI."""
+    _configure_utf8_stdio()
     cli()
 
 
