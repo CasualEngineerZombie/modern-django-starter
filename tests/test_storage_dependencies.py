@@ -100,7 +100,9 @@ class StorageDependencyGenerationTests(unittest.TestCase):
         self.addCleanup(self._tmp.cleanup)
 
     def generate(self, storage_provider, config_builder):
-        ProjectGenerator('test_storage', self._tmp.name, config_builder(storage_provider)).generate()
+        ProjectGenerator(
+            'test_storage', self._tmp.name, config_builder(storage_provider)
+        ).generate()
         self.project = Path(self._tmp.name) / 'test_storage'
         self.pkg = self.project / 'test_storage'
 
@@ -128,7 +130,9 @@ class StorageDependencyGenerationTests(unittest.TestCase):
         # Production factors through base and never re-pins the storage stack.
         self.assertIn('-r base.txt', dev_txt)
         self.assertIn('-r base.txt', prod_txt)
-        self.assertNotIn('django-storages==1.14.4', prod_txt, 'production.txt re-pins django-storages')
+        self.assertNotIn(
+            'django-storages==1.14.4', prod_txt, 'production.txt re-pins django-storages'
+        )
         for sdk in ALL_SDKS:
             self.assertNotIn(f'{sdk}==', prod_txt, f'production.txt re-pins {sdk}')
 
@@ -272,9 +276,7 @@ class StorageIntegrationTests(unittest.TestCase):
                     capture_output=True,
                     text=True,
                 )
-                self.assertEqual(
-                    check.returncode, 0, f'{provider}: {check.stdout} {check.stderr}'
-                )
+                self.assertEqual(check.returncode, 0, f'{provider}: {check.stdout} {check.stderr}')
 
 
 if __name__ == '__main__':
