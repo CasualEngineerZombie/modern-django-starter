@@ -34,7 +34,7 @@ dependencies = [
 dev = [
     "mypy>=1.17,<3",
     "pytest>=9.1.1,<10",
-    "pytest-cov>=6.0.0,<7",
+    "pytest-cov>=6.0.0,<8",
     "ruff>=0.13,<1",
 ]
 docs = [
